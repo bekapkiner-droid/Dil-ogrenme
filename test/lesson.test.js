@@ -39,7 +39,7 @@ const assert=require('assert');
 
   // 3) hikaye: 2. sahne
   await p.click('[data-tab=hikaye]');await wait();await wait();
-  const cards=await p.$$('[data-act=story]');assert.strictEqual(cards.length,2);
+  const cards=await p.$$('[data-act=story]');assert.strictEqual(cards.length,4);
   await cards[1].click();
   for(let i=0;i<3;i++){await wait();await wait();await p.click('[data-ch="0"]');await wait();await p.click('[data-act=snext],[data-act=sdone]')}
   await wait();await wait();
