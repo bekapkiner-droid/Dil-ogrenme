@@ -210,6 +210,16 @@ body{padding-block:20px calc(120px + env(safe-area-inset-bottom,0px))}
   .opt:hover:not([disabled]),.tile:hover:not([disabled]),.plant:hover,.btn:hover:not([disabled]),.say:hover{transform:none;filter:none}
   .opt:hover:not([disabled]):not(.ok):not(.no) .ltr{background:var(--glass-hi);color:inherit}
 }
+button,.dk,.dock-fab,.opt,.tile{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+body.inlesson{padding-block:20px calc(12px + env(safe-area-inset-bottom,0px))}
+.lesson{min-height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px))}
+.lesson>.q{flex:1}
+.act{position:sticky;bottom:0;z-index:3;margin-top:auto;padding:16px 0 calc(6px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--bg) 55%,transparent) 50%)}
+.act .btn{display:block;width:100%;padding:15px 18px;font-size:1.05rem}
+.lesson>.fb{position:sticky;bottom:calc(6px + env(safe-area-inset-bottom,0px));margin-top:auto;z-index:3}
+.lesson>.fb .btn{min-width:120px;padding:13px 20px}
+.row input#ty{flex:1;min-width:0;font-size:1.1rem;padding:13px 14px}
+.say.big{width:84px;height:84px;font-size:2rem}
 @media (max-width:600px){
   .card,.week,.plant,.bubble,.hint,.fb,.opt,.tile,.tray,select,input[type=text]{-webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4)}
   .blobs i{filter:blur(48px)}
@@ -361,7 +371,11 @@ function touch(w,ok,final){
 function bestVoice(){
   try{const l=L[S.lang].tts.slice(0,2),v=speechSynthesis.getVoices().filter(x=>x.lang.toLowerCase().startsWith(l));
     return v.find(x=>/natural|neural|premium|enhanced/i.test(x.name))||v.find(x=>/google/i.test(x.name))||v.find(x=>!x.localService)||v[0]||null}catch(e){return null}}
-function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang=L[S.lang].tts;const v=bestVoice();if(v)u.voice=v;u.rate=.88;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function speak(t){
+  const tts=window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()&&Capacitor.Plugins.TextToSpeech;
+  if(tts){try{tts.speak({text:t,lang:L[S.lang].tts,rate:.9,category:'ambient'}).catch(()=>webSpeak(t));return}catch(e){}}
+  webSpeak(t)}
+function webSpeak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang=L[S.lang].tts;const v=bestVoice();if(v)u.voice=v;u.rate=.88;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 try{speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
 
 /* ---------- Bildirimler (yalnızca mobil uygulamada, Capacitor yerel bildirimleri) ---------- */
@@ -407,7 +421,7 @@ function renderDock(){
   const n=mistakes().length,bd=$('#dk-badge');bd.textContent=n;bd.hidden=!n;
 }
 function render(){
-  render0();renderDock();
+  render0();renderDock();document.body.classList.toggle('inlesson',V.view!=='home');
   const k=V.view;
   if(k==='home'&&V.ptab!==V.tab){
     const dir=TABS.indexOf(V.tab)>=TABS.indexOf(V.ptab||'yol')?1:-1,had=V.ptab!==undefined;V.ptab=V.tab;
@@ -486,19 +500,19 @@ function renderLesson(){
   const q=V.lq[V.i];if(!q)return finish();
   const a=$('#app'),fb=V.fb,pc=V.did/V.total*100;
   const lk='l'+V.i,fresh=V.lk!==lk;V.lk=lk;
-  let body='';
+  let body='',act='';
   const say=t=>`<button class="say" data-say="${esc(t)}" aria-label="Dinle">♪</button>`;
-  if(q.k==='intro')body=`<div class="prompt">Yeni tohum</div><div class="row"><span class="big">${esc(q.w.t)}</span>${say(q.w.t)}</div><div>${esc(q.w.tr)}</div>${q.w.h?`<div class="hint"><b>Türkçe köprü:</b> ${esc(q.w.h)}</div>`:''}<div><button class="btn" data-act="next">Anladım</button></div>`;
+  if(q.k==='intro'){act='<button class="btn" data-act="next">Anladım</button>';body=`<div class="prompt">Yeni tohum</div><div class="row"><span class="big">${esc(q.w.t)}</span>${say(q.w.t)}</div><div>${esc(q.w.tr)}</div>${q.w.h?`<div class="hint"><b>Türkçe köprü:</b> ${esc(q.w.h)}</div>`:''}`}
   else if(q.k==='tr2t'||q.k==='t2tr'||q.k==='listen'){
     const toT=q.k==='t2tr',show=q.k==='tr2t'?q.w.t:q.w.tr;
     const title=q.k==='listen'?'Duyduğun kelimeyi seç':(toT?'Doğru karşılığı seç':'Bu ne demek?');
-    body=`<div class="prompt">${title}</div>${q.k==='listen'?say(q.w.t):`<div class="row"><span class="big">${esc(show)}</span>${q.k==='tr2t'?say(q.w.t):''}</div>`}<div class="opts">${q.o.map((o,oi)=>`<button class="opt ${fb?(o===(q.k==='tr2t'?q.w.tr:q.w.t)?'ok':(fb.pick===o?'no':'')):''}" data-pick="${esc(o)}" ${fb?'disabled':''}><span class="ltr">${'ABCD'[oi]}</span><span>${esc(o)}</span></button>`).join('')}</div>`;
+    body=`<div class="prompt">${title}</div>${q.k==='listen'?`<div class="row"><button class="say big" data-say="${esc(q.w.t)}" aria-label="Dinle">♪</button><span class="muted">Dokun, tekrar dinle</span></div>`:`<div class="row"><span class="big">${esc(show)}</span>${q.k==='tr2t'?say(q.w.t):''}</div>`}<div class="opts">${q.o.map((o,oi)=>`<button class="opt ${fb?(o===(q.k==='tr2t'?q.w.tr:q.w.t)?'ok':(fb.pick===o?'no':'')):''}" data-pick="${esc(o)}" ${fb?'disabled':''}><span class="ltr">${'ABCD'[oi]}</span><span>${esc(o)}</span></button>`).join('')}</div>`;
     if(q.k==='listen'&&!fb)setTimeout(()=>speak(q.w.t),200);
-  }else if(q.k==='type')body=`<div class="prompt">Şunu yaz</div><div class="big">${esc(q.w.tr)}</div><div class="row"><input type="text" id="ty" autocomplete="off" autocapitalize="off" placeholder="${L[S.lang].ad} karşılığı" value="${esc(V.typed||'')}" ${fb?'disabled':''}><button class="btn" data-act="check" ${fb?'disabled':''}>Kontrol et</button></div>${V.sug&&!fb?`<div class="hint" role="status">Şunu mu demek istedin: <b>${esc(V.sug)}</b>?<div class="row" style="margin-top:8px"><button class="btn" data-act="sugyes">Evet, bu</button><button class="btn ghost" data-act="sugno">Düzelteyim</button></div></div>`:''}`;
-  else body=`<div class="prompt">Cümleyi kur</div><div class="big" style="font-size:1.5rem">${esc(q.s.tr)}</div><div class="tray">${V.built.map((t,i)=>`<button class="tile" data-un="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div><div class="tiles">${q.tiles.map((t,i)=>(V.usedIdx||[]).includes(i)?'':`<button class="tile" data-tile="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div><div><button class="btn" data-act="check" ${fb||!V.built.length?'disabled':''}>Kontrol et</button></div>`;
+  }else if(q.k==='type'){act='<button class="btn" data-act="check">Kontrol et</button>';body=`<div class="prompt">Şunu yaz</div><div class="big">${esc(q.w.tr)}</div><div class="row"><input type="text" id="ty" autocomplete="off" autocapitalize="off" placeholder="${L[S.lang].ad} karşılığı" value="${esc(V.typed||'')}" ${fb?'disabled':''}></div>${V.sug&&!fb?`<div class="hint" role="status">Şunu mu demek istedin: <b>${esc(V.sug)}</b>?<div class="row" style="margin-top:8px"><button class="btn" data-act="sugyes">Evet, bu</button><button class="btn ghost" data-act="sugno">Düzelteyim</button></div></div>`:''}`}
+  else{act=`<button class="btn" data-act="check" ${V.built.length?'':'disabled'}>Kontrol et</button>`;body=`<div class="prompt">Cümleyi kur</div><div class="big" style="font-size:1.5rem">${esc(q.s.tr)}</div><div class="tray">${V.built.map((t,i)=>`<button class="tile" data-un="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div><div class="tiles">${q.tiles.map((t,i)=>(V.usedIdx||[]).includes(i)?'':`<button class="tile" data-tile="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div>`}
   const ans=q.w?(q.k==='tr2t'?q.w.tr:q.w.t):q.s&&q.s.t;
   const foot=fb?`<div class="fb ${fb.ok?'ok':'no'}" role="status" aria-live="polite"><div><b>${fb.ok?'Güzel!':'Sorun değil, sonra tekrar ederiz.'}</b><div>${fb.ok?'':'Doğrusu: '+esc(ans)}${!fb.ok&&q.w&&q.w.h?`<br><span class="muted">Köprü: ${esc(q.w.h)}</span>`:''}</div></div><button class="btn" data-act="next">Devam</button></div>`:'';
-  a.innerHTML=`<div class="lesson"><div class="lhead"><button class="xbtn" data-act="quit" aria-label="Dersten çık">×</button><div class="bar"><i style="width:${pc}%"></i></div></div><div class="q${fresh?' enter':''}">${body}</div>${foot}</div>`;
+  a.innerHTML=`<div class="lesson"><div class="lhead"><button class="xbtn" data-act="quit" aria-label="Dersten çık">×</button><div class="bar"><i style="width:${pc}%"></i></div></div><div class="q${fresh?' enter':''}">${body}</div>${foot}${act&&!fb?`<div class="act">${act}</div>`:''}</div>`;
   const ty=$('#ty');if(ty&&!fb&&!V.sug){ty.focus();ty.setSelectionRange(ty.value.length,ty.value.length)}
 }
 function answer(ok,q){
