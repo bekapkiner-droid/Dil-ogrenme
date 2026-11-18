@@ -45,7 +45,7 @@ const assert=require('assert');
   await wait();await wait();
   assert((await p.textContent('.lesson h2')).includes('6 kibarlık'),'hikaye puanı');
 
-  // 4) ana ekrana dönüş hatasız
+  // 4) yedek: kopyala/yükle kodu geçerli
   await p.click('[data-act=home]');await wait();await wait();
   assert.deepStrictEqual(errs,[]);
   console.log('tamam');

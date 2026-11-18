@@ -182,9 +182,52 @@ h2{font-size:1.05rem;font-weight:700}h3{font-size:.95rem;font-weight:500}
 .q.enter .opt{animation:rise .55s cubic-bezier(.2,.9,.3,1) backwards}
 .q.enter .opt:nth-child(1){animation-delay:.12s}.q.enter .opt:nth-child(2){animation-delay:.2s}.q.enter .opt:nth-child(3){animation-delay:.28s}.q.enter .opt:nth-child(4){animation-delay:.36s}
 @media (prefers-reduced-motion:reduce){.blobs i,.plantg,.brand svg,.bar i::after,.mini i::after{animation:none!important}}
+/* ===== Alt menü (yüzen cam çubuk) ve mobil düzeltmeler ===== */
+body{padding-block:20px calc(120px + env(safe-area-inset-bottom,0px))}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:center;pointer-events:none;
+  padding:0 max(14px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));
+  transition:transform .45s cubic-bezier(.2,1.1,.3,1),opacity .3s,visibility 0s}
+.dock.off{transform:translateY(160%);opacity:0;visibility:hidden;transition:transform .4s,opacity .3s,visibility 0s .4s}
+.dock-in{display:flex;gap:10px;align-items:center;width:min(560px,100%);pointer-events:auto}
+.dock-pill{position:relative;flex:1;display:flex;padding:5px;border-radius:99px;min-width:0;
+  background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);
+  box-shadow:inset 0 1px 0 var(--glass-line),0 12px 32px var(--glass-sh)}
+.dock-pill::before{content:"";position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px)/4);border-radius:99px;
+  background:var(--glass-hi);border:1px solid var(--glass-line);box-shadow:0 4px 14px var(--glass-sh);
+  transform:translateX(calc(var(--i,0)*100%));transition:transform .5s cubic-bezier(.3,1.35,.5,1)}
+.dk{position:relative;overflow:hidden;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 7px;border:0;background:none;border-radius:99px;
+  color:var(--muted);font-size:.7rem;font-weight:700;transition:color .3s}
+.dk svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.dk[aria-selected=true]{color:var(--leaf-d)}.dk[aria-selected=true] svg{transform:translateY(-1px) scale(1.12)}
+.dk-badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:var(--bad);color:#fff;font:700 .65rem/17px var(--body);font-style:normal;text-align:center}
+.dock-fab{position:relative;overflow:hidden;flex:none;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;color:var(--onleaf);
+  border:1px solid rgba(255,255,255,.5);background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,0) 55%),var(--leaf);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 12px 28px var(--glass-sh);transition:transform .2s cubic-bezier(.3,1.5,.5,1)}
+.dock-fab svg{width:24px;height:24px;fill:currentColor;margin-left:2px}
+.dock-fab:active{transform:scale(.9)}
+.xbtn{min-width:44px;min-height:44px}
+@media (hover:none){
+  .opt:hover:not([disabled]),.tile:hover:not([disabled]),.plant:hover,.btn:hover:not([disabled]),.say:hover{transform:none;filter:none}
+  .opt:hover:not([disabled]):not(.ok):not(.no) .ltr{background:var(--glass-hi);color:inherit}
+}
+@media (max-width:600px){
+  .card,.week,.plant,.bubble,.hint,.fb,.opt,.tile,.tray,select,input[type=text]{-webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4)}
+  .blobs i{filter:blur(48px)}
+}
 </style>
 <div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="wrap" id="app"></div>
+<nav class="dock off" id="dock" aria-label="Ana menü">
+  <div class="dock-in">
+    <div class="dock-pill" role="tablist" style="--i:0">
+      <button class="dk" role="tab" data-tab="yol" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg><span>Yol</span></button>
+      <button class="dk" role="tab" data-tab="bahce" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9"/><path d="M12 12C12 8 9 6 5 6c0 4 3 6 7 6z"/><path d="M12 14c0-3 2-5 6-5 0 3-2 5-6 5z"/></svg><span>Bahçe</span></button>
+      <button class="dk" role="tab" data-tab="hikaye" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span>Hikaye</span></button>
+      <button class="dk" role="tab" data-tab="defter" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/></svg><span>Hatalar</span><i class="dk-badge" id="dk-badge" hidden>0</i></button>
+    </div>
+    <button class="dock-fab" data-act="quick" aria-label="Devam et"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+  </div>
+</nav>
 <script>
 "use strict";
 /* ---------- İçerik ---------- */
@@ -263,6 +306,8 @@ const DAY=864e5, GAP=[0,1,3,7,14];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm=s=>String(s).toLowerCase().replace(/ß/g,'ss').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[¿?¡!.,]/g,'').replace(/\s+/g,' ').trim();
+function lev(a,b){const m=a.length,n=b.length,d=[...Array(n+1).keys()];
+  for(let i=1;i<=m;i++){let p=d[0];d[0]=i;for(let j=1;j<=n;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return d[n]}
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const dkey=d=>{d=d||new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -319,6 +364,28 @@ function bestVoice(){
 function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang=L[S.lang].tts;const v=bestVoice();if(v)u.voice=v;u.rate=.88;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 try{speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
 
+/* ---------- Bildirimler (yalnızca mobil uygulamada, Capacitor yerel bildirimleri) ---------- */
+const LN=()=>{try{return window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?Capacitor.Plugins.LocalNotifications:null}catch(e){return null}};
+async function scheduleReminders(){
+  const ln=LN();if(!ln)return;
+  try{
+    await ln.cancel({notifications:[{id:1},{id:2}]});
+    if(!S.notify)return;
+    const notes=[{id:2,title:'Filiz',body:'Bahçen seni bekliyor. Birkaç dakika yeter.',schedule:{on:{hour:19,minute:0},allowWhileIdle:true}}];
+    const dues=Object.values(S.words).filter(w=>w.lvl>0).map(w=>w.due);
+    if(dues.length){const at=Math.max(Math.min(...dues),Date.now()+60*60*1000);
+      notes.push({id:1,title:'Bitkiler susadı',body:'Bazı kelimelerin sulama zamanı geldi.',schedule:{at:new Date(at),allowWhileIdle:true}})}
+    await ln.schedule({notifications:notes});
+  }catch(e){}}
+async function toggleNotify(){
+  const ln=LN();if(!ln)return 'Bildirimler yalnızca mobil uygulamada çalışır.';
+  try{
+    if(!S.notify){const r=await ln.requestPermissions();if(r.display!=='granted')return 'Bildirim izni verilmedi. Telefon ayarlarından açabilirsin.';S.notify=true}
+    else S.notify=false;
+    save();await scheduleReminders();
+    return S.notify?'Hatırlatmalar açıldı. Her akşam 19:00 ve bitkiler susayınca haber veririm.':'Hatırlatmalar kapatıldı.';
+  }catch(e){return 'Bildirim ayarlanamadı.'}}
+
 /* ---------- Bitki çizimi ---------- */
 function plant(l,wilt){
   const st=['<ellipse class="s-seed" cx="32" cy="55" rx="4" ry="3"/>',
@@ -332,8 +399,15 @@ const logo='<svg viewBox="0 0 64 70" aria-hidden="true"><ellipse class="s-soil" 
 /* ---------- Ana ekran ---------- */
 function weekMin(){let m=0;for(let i=0;i<7;i++)m+=S.min[dkey(new Date(Date.now()-i*DAY))]||0;return m}
 const TABS=['yol','bahce','hikaye','defter'];
+function renderDock(){
+  const d=$('#dock');if(!d)return;
+  d.classList.toggle('off',V.view!=='home');
+  d.querySelector('.dock-pill').style.setProperty('--i',Math.max(0,TABS.indexOf(V.tab)));
+  d.querySelectorAll('.dk').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===V.tab)));
+  const n=mistakes().length,bd=$('#dk-badge');bd.textContent=n;bd.hidden=!n;
+}
 function render(){
-  render0();
+  render0();renderDock();
   const k=V.view;
   if(k==='home'&&V.ptab!==V.tab){
     const dir=TABS.indexOf(V.tab)>=TABS.indexOf(V.ptab||'yol')?1:-1,had=V.ptab!==undefined;V.ptab=V.tab;
@@ -364,7 +438,6 @@ function render0(){
     <label class="muted">Hedef <select id="goal">${[30,60,90,150].map(g=>`<option ${g===S.goal?'selected':''}>${g}</option>`).join('')}</select> dk</label></div>
     <div class="bar"><i style="width:${pc}%"></i></div>
     <div class="week-row"><div class="days">${days}</div><span class="muted">Seri yok, can yok. Ara verince bahçen sadece susar, kaybolmaz.</span></div></section>
-  <nav class="tabs" role="tablist">${[['yol','Yol'],['bahce','Bahçe'],['hikaye','Hikaye'],['defter','Hatalar'+(mis?' ('+mis+')':'')]].map(t=>`<button role="tab" data-tab="${t[0]}" aria-selected="${V.tab===t[0]}">${t[1]}</button>`).join('')}</nav>
   <main class="${fresh?'enter':''}">${tab(due)}</main>`;
 }
 function tab(due){
@@ -374,6 +447,7 @@ function tab(due){
     <div class="grid">${gs.map(g=>{const av=g.w.reduce((a,w)=>a+ws(w).lvl,0)/(g.w.length*4)*100;return `<div class="card"><h3>${esc(g.ad)}</h3><div class="mini"><i style="width:${av}%"></i></div><div class="chips">${g.w.map(w=>`<span class="chip">${esc(w.t)}</span>`).join('')}</div><div><button class="btn" data-act="lesson" data-g="${g.id}">${av?'Devam':'Başla'}</button></div></div>`}).join('')}</div>
     <h2 style="margin-top:22px">Kendi kelimeni ekle</h2><p class="muted">Eklediğin kelime bahçene yeni bir tohum olarak düşer. Ses benzerliği ipucunu kendin yaz.</p>
     <form class="add" id="addf"><input type="text" id="a-tr" placeholder="Türkçesi" required><input type="text" id="a-t" placeholder="${L[S.lang].ad} karşılığı" required><input type="text" id="a-h" placeholder="Türkçe ses ipucu (isteğe bağlı)"><button class="btn" type="submit">Tohumu ek</button></form>
+    <h2 style="margin-top:22px">Hatırlatmalar</h2>${LN()?`<p class="muted">Akşam 19:00'da ve bitkilerin susadığı zaman telefona bildirim gelir. Seri ya da suçlama yok.</p><p class="muted">Xiaomi telefonlarda bildirim gelmezse: Ayarlar, Uygulamalar, Filiz içinde "Otomatik başlat"ı aç ve pil tasarrufunu "Kısıtlama yok" yap.</p><div class="row"><button class="btn ${S.notify?'':'ghost'}" data-act="notify">${S.notify?'Hatırlatmalar açık':'Hatırlatmaları aç'}</button></div>`:`<p class="muted">Bildirimler mobil uygulamada çalışır. Tarayıcıdaki sürümde yalnızca sayfa açıkken hatırlatma görürsün.</p>`}<p class="muted" id="ntmsg" role="status"></p>
     <h2 style="margin-top:22px">İlerlemeni taşı</h2><p class="muted">Hesap sistemi yok, ilerleme bu tarayıcıda durur. Başka cihaza geçmek için kodu kopyala, orada yapıştır.</p>
     <div class="row"><button class="btn ghost" data-act="bkcopy">Kodu kopyala</button><input type="text" id="bk" placeholder="Kodu buraya yapıştır" aria-label="Yedek kodu"><button class="btn ghost" data-act="bkload">Geri yükle</button></div><p class="muted" id="bkmsg" role="status"></p>`;
   }
@@ -407,7 +481,7 @@ function buildLesson(ws_,sents){
   shuffle(sents).slice(0,2).forEach(s=>Q.push({k:'build',s,tiles:shuffle(s.t.split(' '))}));
   return Q;}
 function start(list,sents){
-  V.view='lesson';V.lq=buildLesson(list,sents||[]);V.i=0;V.t0=Date.now();V.fb=null;V.built=[];V.total=V.lq.length;V.did=0;render();}
+  V.typed='';V.sug=null;V.view='lesson';V.lq=buildLesson(list,sents||[]);V.i=0;V.t0=Date.now();V.fb=null;V.built=[];V.total=V.lq.length;V.did=0;render();}
 function renderLesson(){
   const q=V.lq[V.i];if(!q)return finish();
   const a=$('#app'),fb=V.fb,pc=V.did/V.total*100;
@@ -420,22 +494,22 @@ function renderLesson(){
     const title=q.k==='listen'?'Duyduğun kelimeyi seç':(toT?'Doğru karşılığı seç':'Bu ne demek?');
     body=`<div class="prompt">${title}</div>${q.k==='listen'?say(q.w.t):`<div class="row"><span class="big">${esc(show)}</span>${q.k==='tr2t'?say(q.w.t):''}</div>`}<div class="opts">${q.o.map((o,oi)=>`<button class="opt ${fb?(o===(q.k==='tr2t'?q.w.tr:q.w.t)?'ok':(fb.pick===o?'no':'')):''}" data-pick="${esc(o)}" ${fb?'disabled':''}><span class="ltr">${'ABCD'[oi]}</span><span>${esc(o)}</span></button>`).join('')}</div>`;
     if(q.k==='listen'&&!fb)setTimeout(()=>speak(q.w.t),200);
-  }else if(q.k==='type')body=`<div class="prompt">Şunu yaz</div><div class="big">${esc(q.w.tr)}</div><div class="row"><input type="text" id="ty" autocomplete="off" autocapitalize="off" placeholder="${L[S.lang].ad} karşılığı" ${fb?'disabled':''}><button class="btn" data-act="check" ${fb?'disabled':''}>Kontrol et</button></div>`;
+  }else if(q.k==='type')body=`<div class="prompt">Şunu yaz</div><div class="big">${esc(q.w.tr)}</div><div class="row"><input type="text" id="ty" autocomplete="off" autocapitalize="off" placeholder="${L[S.lang].ad} karşılığı" value="${esc(V.typed||'')}" ${fb?'disabled':''}><button class="btn" data-act="check" ${fb?'disabled':''}>Kontrol et</button></div>${V.sug&&!fb?`<div class="hint" role="status">Şunu mu demek istedin: <b>${esc(V.sug)}</b>?<div class="row" style="margin-top:8px"><button class="btn" data-act="sugyes">Evet, bu</button><button class="btn ghost" data-act="sugno">Düzelteyim</button></div></div>`:''}`;
   else body=`<div class="prompt">Cümleyi kur</div><div class="big" style="font-size:1.5rem">${esc(q.s.tr)}</div><div class="tray">${V.built.map((t,i)=>`<button class="tile" data-un="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div><div class="tiles">${q.tiles.map((t,i)=>(V.usedIdx||[]).includes(i)?'':`<button class="tile" data-tile="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div><div><button class="btn" data-act="check" ${fb||!V.built.length?'disabled':''}>Kontrol et</button></div>`;
   const ans=q.w?(q.k==='tr2t'?q.w.tr:q.w.t):q.s&&q.s.t;
   const foot=fb?`<div class="fb ${fb.ok?'ok':'no'}" role="status" aria-live="polite"><div><b>${fb.ok?'Güzel!':'Sorun değil, sonra tekrar ederiz.'}</b><div>${fb.ok?'':'Doğrusu: '+esc(ans)}${!fb.ok&&q.w&&q.w.h?`<br><span class="muted">Köprü: ${esc(q.w.h)}</span>`:''}</div></div><button class="btn" data-act="next">Devam</button></div>`:'';
   a.innerHTML=`<div class="lesson"><div class="lhead"><button class="xbtn" data-act="quit" aria-label="Dersten çık">×</button><div class="bar"><i style="width:${pc}%"></i></div></div><div class="q${fresh?' enter':''}">${body}</div>${foot}</div>`;
-  const ty=$('#ty');if(ty&&!fb)ty.focus();
+  const ty=$('#ty');if(ty&&!fb&&!V.sug){ty.focus();ty.setSelectionRange(ty.value.length,ty.value.length)}
 }
 function answer(ok,q){
   V.fb={ok,pick:V.pick};sfx[ok?'ok':'no']();
   if(q.w)touch(q.w,ok,q.final);
   if(!ok&&!q.retry){V.lq.push(Object.assign({},q,{retry:true,fb:null}));V.total++;}
   render();}
-function next(){V.fb=null;V.built=[];V.usedIdx=[];V.did++;V.i++;render();}
+function next(){V.typed='';V.sug=null;V.fb=null;V.built=[];V.usedIdx=[];V.did++;V.i++;render();}
 function finish(){
   const mins=Math.max(1,Math.round((Date.now()-V.t0)/60000));
-  const k=dkey();S.min[k]=(S.min[k]||0)+mins;save();V.view='done';V.res={mins};render();}
+  const k=dkey();S.min[k]=(S.min[k]||0)+mins;save();scheduleReminders();V.view='done';V.res={mins};render();}
 function renderDone(){
   $('#app').innerHTML=`<div class="lesson" style="align-items:center;justify-content:center;text-align:center"><div style="width:120px">${plant(4,false)}</div><h2>${V.res.story!=null?'Sahne bitti: '+V.res.story+' / 6 kibarlık':'Ders tamam'}</h2><p class="muted">Bahçene ${V.res.mins} dakika sulama yazıldı.</p><button class="btn" data-act="home">Bahçeye dön</button></div>`;V.lk=null;V.hk=null;confetti();}
 function confetti(){
@@ -460,7 +534,7 @@ function renderStory(){
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||b.disabled||V.busy)return;
   ripple(b,e);
-  const d=b.dataset,nav=d.tab||d.ch!=null||(d.act&&d.act!=='check'&&d.act!=='mute');
+  const d=b.dataset,nav=d.tab||d.ch!=null||(d.act&&d.act!=='check'&&d.act!=='mute'&&!/^sug/.test(d.act));
   if(nav&&!reduce){
     V.busy=true;b.classList.add('press');
     const tgt=d.tab?$('main'):(d.act==='next'||d.act==='snext')?null:$('#app');
@@ -485,9 +559,15 @@ function handle(b){
     const ok=()=>msg('Kod kopyalandı.'),no=()=>{const i=$('#bk');i.value=code;i.select();msg('Kodu elle kopyala.')};
     try{navigator.clipboard.writeText(code).then(ok,no)}catch(e){no()}return}
   if(a==='bkload'){try{const o=JSON.parse(decodeURIComponent(escape(atob($('#bk').value.trim()))));if(!o||typeof o!=='object'||!o.words)throw 0;S=Object.assign({lang:'en',goal:60,words:{},custom:{},min:{},story:{}},o);save();render();msg('İlerleme geri yüklendi.')}catch(e){msg('Kod geçersiz.')}return}
+  if(a==='notify'){toggleNotify().then(t=>{render();const e=$('#ntmsg');if(e)e.textContent=t});return}
+  if(a==='sugyes'&&q){V.sug=null;V.pick=q.w.t;return answer(true,q)}
+  if(a==='sugno'){V.sug=null;return render()}
   if(a==='mute'){S.mute=!S.mute;save();sfx.click();return render()}
   if(a==='lesson'){const g=groups().find(x=>x.id===d.g);V.usedIdx=[];start(g.w,g.s)}
   else if(a==='water'){V.usedIdx=[];start(shuffle(allWords().filter(isDue)).slice(0,5),[])}
+  else if(a==='quick'){V.usedIdx=[];const dw=allWords().filter(isDue);
+    if(dw.length)start(shuffle(dw).slice(0,5),[]);
+    else{const g=groups().find(x=>x.w.some(w=>ws(w).lvl<4))||groups()[0];start(g.w,g.s)}}
   else if(a==='mist'){V.usedIdx=[];start(shuffle(mistakes()).slice(0,5),[])}
   else if(a==='story'){V.view='story';V.si=+d.si;V.n=0;V.sc=0;V.ans=[];render()}
   else if(a==='snext'){V.n++;render()}
@@ -495,7 +575,11 @@ function handle(b){
   else if(a==='home'||a==='quit'){V.view='home';render()}
   else if(a==='next')next();
   else if(a==='check'&&q){
-    if(q.k==='type'){const v=$('#ty').value;if(!v.trim())return;V.pick=v;answer(norm(v)===norm(q.w.t),q)}
+    if(q.k==='type'){const v=$('#ty').value;if(!v.trim())return;V.typed=v;
+      const nv=norm(v),nt=norm(q.w.t),len=nt.length,lim=len>=7?2:len>=4?1:0;
+      if(nv===nt){V.pick=v;V.sug=null;answer(true,q)}
+      else if(!q.sugUsed&&lim&&lev(nv,nt)<=lim){q.sugUsed=true;V.sug=q.w.t;render()}
+      else{V.pick=v;V.sug=null;answer(false,q)}}
     else answer(norm(V.built.join(' '))===norm(q.s.t),q)}
 }
 document.addEventListener('keydown',e=>{
@@ -508,4 +592,5 @@ document.addEventListener('submit',e=>{
     const tr=$('#a-tr').value.trim(),t=$('#a-t').value.trim(),h=$('#a-h').value.trim();if(!tr||!t)return;
     (S.custom[S.lang]=S.custom[S.lang]||[]).push([tr,t,h]);save();render();}});
 render();
+scheduleReminders();
 </script>
