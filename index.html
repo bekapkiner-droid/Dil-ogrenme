@@ -154,6 +154,9 @@ h2{font-size:1.05rem;font-weight:700}h3{font-size:.95rem;font-weight:500}
 .s-leaf,.s-pet,.s-core,.s-soil,.s-seed{stroke:var(--ink);stroke-width:1.4;stroke-linejoin:round}
 .s-seed{fill:var(--soil)}.s-stem{stroke:var(--ink)}
 .detail{margin-bottom:14px}
+.next{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px 18px;border-radius:20px;background:var(--glass);border:1px solid var(--glass-line);
+  -webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);box-shadow:inset 0 1px 0 var(--glass-line),0 10px 28px var(--glass-sh)}
+.next h2{margin:2px 0}.next .btn{flex:none;padding:13px 22px}
 .btn,.opt,.tile,.tabs button,.say,.xbtn{position:relative;overflow:hidden}
 .wipe{position:fixed;inset:0;z-index:4;pointer-events:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   background:linear-gradient(100deg,transparent 0 28%,var(--glass-hi) 42%,rgba(255,255,255,.6) 50%,var(--glass-hi) 58%,transparent 72% 100%);
@@ -265,7 +268,23 @@ const L = {
       {id:'zam',ad:'Zaman',w:[['bugün','today',''],['yarın','tomorrow',''],['dün','yesterday',''],['sabah','morning',''],['akşam','evening',''],['gece','night','']],
        s:[['Bugün okul var','There is school today'],['Yarın sabah','Tomorrow morning']]},
       {id:'seh',ad:'Şehir',w:[['şehir','city',''],['sokak','street',''],['istasyon','station','Okunuşu "steyşın". Türkçedeki "istasyon" aynı Latince kökten gelir.'],['lokanta','restaurant','Türkçedeki "restoran" ile aynı kelime. Okunuşu "restırant".'],['hastane','hospital',''],['banka','bank','Türkçedeki "banka" ile aynı kökten gelir.']],
-       s:[['İstasyon sokakta','The station is on the street'],['Hastane şehirde','The hospital is in the city']]}],
+       s:[['İstasyon sokakta','The station is on the street'],['Hastane şehirde','The hospital is in the city']]},
+      {id:"aile",ad:"Aile",w:[["anne","mother",""],["baba","father",""],["erkek kardeş","brother",""],["kız kardeş","sister",""],["çocuk","child",""],["arkadaş","friend",""]],
+       s:[["Annem evde","My mother is at home"],["Arkadaşım okulda","My friend is at school"]]},
+      {id:"ren",ad:"Renkler",w:[["kırmızı","red",""],["mavi","blue",""],["yeşil","green",""],["sarı","yellow",""],["siyah","black",""],["beyaz","white",""]],
+       s:[["Elma kırmızı","The apple is red"],["Kedi siyah","The cat is black"]]},
+      {id:"sif",ad:"Sıfatlar",w:[["büyük","big",""],["küçük","small",""],["iyi","good",""],["kötü","bad",""],["sıcak","hot",""],["soğuk","cold",""]],
+       s:[["Su soğuk","The water is cold"],["Ev büyük","The house is big"]]},
+      {id:"fii",ad:"Fiiller",w:[["yemek yemek","eat",""],["içmek","drink",""],["gitmek","go",""],["gelmek","come",""],["görmek","see",""],["istemek","want",""]],
+       s:[["Ben su içiyorum","I drink water"],["Sen okula gidiyorsun","You go to school"]]},
+      {id:"ali",ad:"Alışveriş",w:[["para","money",""],["fiyat","price",""],["pahalı","expensive",""],["ucuz","cheap",""],["açık","open",""],["kapalı","closed",""]],
+       s:[["Bu pahalı","This is expensive"],["Banka açık","The bank is open"]]},
+      {id:"sey",ad:"Seyahat",w:[["otel","hotel",""],["uçak","plane",""],["bilet","ticket",""],["havalimanı","airport","air = hava, port = liman. Kelime \"havalimanı\" demek."],["otobüs","bus",""],["harita","map",""]],
+       s:[["Bilet nerede?","Where is the ticket"],["Otel şehirde","The hotel is in the city"]]},
+      {id:"doga",ad:"Doğa",w:[["güneş","sun",""],["yağmur","rain",""],["deniz","sea",""],["ağaç","tree",""],["dağ","mountain",""],["nehir","river",""]],
+       s:[["Bugün yağmur var","There is rain today"],["Ağaç büyük","The tree is big"]]},
+      {id:"gun",ad:"Günler",w:[["pazartesi","Monday",""],["salı","Tuesday",""],["çarşamba","Wednesday",""],["perşembe","Thursday",""],["cuma","Friday",""],["hafta sonu","weekend","week = hafta, end = son. Kelime \"haftanın sonu\" demek."]],
+       s:[["Bugün cuma","Today is Friday"],["Yarın hafta sonu","Tomorrow is the weekend"]]}],
     st:[
       {ad:'Kafede',o:'Garsona sipariş verirsin.',n:[['Hello! What would you like?','Merhaba! Ne istersiniz?'],['Anything else?','Başka bir şey var mı?'],['Here you go.','Buyurun.']],
        c:[[['Water, please.','Su, lütfen.',2],['I want bread.','Ekmek istiyorum.',1],['Cat.','Kedi.',0]],[['No, thank you.','Hayır, teşekkürler.',2],['Yes, milk, please.','Evet, süt lütfen.',2],['Dog.','Köpek.',0]],[['Thank you!','Teşekkürler!',2],['Goodbye.','Hoşça kal.',1],['House.','Ev.',0]]]},
@@ -288,7 +307,23 @@ const L = {
       {id:'zam',ad:'Zaman',w:[['bugün','hoy',''],['yarın','mañana','Aynı kelime "sabah" anlamına da gelir: la mañana. Cümleye bakarak ayırırsın.'],['dün','ayer',''],['sabah','la mañana','Aynı kökten "mañana" yarın demektir.'],['akşam','la tarde',''],['gece','la noche','']],
        s:[['Bugün okul var','Hoy hay escuela'],['Yarın sabah','Mañana por la mañana']]},
       {id:'seh',ad:'Şehir',w:[['şehir','ciudad',''],['sokak','calle',''],['istasyon','estación','Türkçe "istasyon" ile aynı Latince kökten gelir.'],['lokanta','restaurante',''],['hastane','hospital',''],['banka','banco','Türkçe "banka" ile aynı kökten gelir.']],
-       s:[['İstasyon sokakta','La estación está en la calle'],['Hastane şehirde','El hospital está en la ciudad']]}],
+       s:[['İstasyon sokakta','La estación está en la calle'],['Hastane şehirde','El hospital está en la ciudad']]},
+      {id:"aile",ad:"Aile",w:[["anne","madre",""],["baba","padre",""],["erkek kardeş","hermano",""],["kız kardeş","hermana",""],["çocuk","niño",""],["arkadaş","amigo",""]],
+       s:[["Annem evde","Mi madre está en casa"],["Arkadaşım okulda","Mi amigo está en la escuela"]]},
+      {id:"ren",ad:"Renkler",w:[["kırmızı","rojo",""],["mavi","azul",""],["yeşil","verde",""],["sarı","amarillo",""],["siyah","negro",""],["beyaz","blanco",""]],
+       s:[["Elma kırmızı","La manzana es roja"],["Kedi siyah","El gato es negro"]]},
+      {id:"sif",ad:"Sıfatlar",w:[["büyük","grande",""],["küçük","pequeño",""],["iyi","bueno",""],["kötü","malo",""],["sıcak","caliente",""],["soğuk","frío",""]],
+       s:[["Su soğuk","El agua está fría"],["Ev büyük","La casa es grande"]]},
+      {id:"fii",ad:"Fiiller",w:[["yemek yemek","comer",""],["içmek","beber",""],["gitmek","ir",""],["gelmek","venir",""],["görmek","ver",""],["istemek","querer",""]],
+       s:[["Ben su içiyorum","Bebo agua"],["Sen okula gidiyorsun","Vas a la escuela"]]},
+      {id:"ali",ad:"Alışveriş",w:[["para","dinero",""],["fiyat","precio",""],["pahalı","caro",""],["ucuz","barato",""],["açık","abierto",""],["kapalı","cerrado",""]],
+       s:[["Bu pahalı","Esto es caro"],["Banka açık","El banco está abierto"]]},
+      {id:"sey",ad:"Seyahat",w:[["otel","hotel","Türkçe \"otel\" ile aynı kökten gelir. İspanyolcada h okunmaz: \"otel\"."],["uçak","avión",""],["bilet","billete",""],["havalimanı","aeropuerto","aero = hava, puerto = liman. Kelime \"havalimanı\" demek."],["otobüs","autobús",""],["harita","mapa",""]],
+       s:[["Bilet nerede?","¿Dónde está el billete?"],["Otel şehirde","El hotel está en la ciudad"]]},
+      {id:"doga",ad:"Doğa",w:[["güneş","sol",""],["yağmur","lluvia",""],["deniz","mar",""],["ağaç","árbol",""],["dağ","montaña",""],["nehir","río",""]],
+       s:[["Bugün yağmur var","Hoy hay lluvia"],["Ağaç büyük","El árbol es grande"]]},
+      {id:"gun",ad:"Günler",w:[["pazartesi","lunes",""],["salı","martes",""],["çarşamba","miércoles",""],["perşembe","jueves",""],["cuma","viernes",""],["hafta sonu","fin de semana",""]],
+       s:[["Bugün cuma","Hoy es viernes"],["Yarın hafta sonu","Mañana es fin de semana"]]}],
     st:[
       {ad:'Kafede',o:'Garsona sipariş verirsin.',n:[['¡Hola! ¿Qué desea?','Merhaba! Ne istersiniz?'],['¿Algo más?','Başka bir şey var mı?'],['Aquí tiene.','Buyurun.']],
        c:[[['Agua, por favor.','Su, lütfen.',2],['Quiero pan.','Ekmek istiyorum.',1],['Gato.','Kedi.',0]],[['No, gracias.','Hayır, teşekkürler.',2],['Sí, leche, por favor.','Evet, süt lütfen.',2],['Perro.','Köpek.',0]],[['¡Gracias!','Teşekkürler!',2],['Adiós.','Hoşça kal.',1],['Casa.','Ev.',0]]]},
@@ -311,7 +346,23 @@ const L = {
       {id:'zam',ad:'Zaman',w:[['bugün','heute',''],['yarın','morgen','Aynı yazılışla "sabah" da olur, ama o büyük harfle yazılır: der Morgen.'],['dün','gestern',''],['sabah','der Morgen','Küçük harfli "morgen" yarın demektir.'],['akşam','der Abend',''],['gece','die Nacht','']],
        s:[['Bugün okul var','Heute ist Schule'],['Yarın sabah','Morgen früh']]},
       {id:'seh',ad:'Şehir',w:[['şehir','Stadt',''],['sokak','Straße','ß harfi "ss" gibi okunur. Yazarken "ss" de kabul edilir.'],['istasyon','Bahnhof','Bahn = yol, Hof = avlu. Kelime "yol avlusu" demek.'],['lokanta','Restaurant',''],['hastane','Krankenhaus','krank = hasta, Haus = ev. Kelime "hasta evi" demek.'],['banka','Bank','']],
-       s:[['İstasyon sokakta','Der Bahnhof ist auf der Straße'],['Hastane şehirde','Das Krankenhaus ist in der Stadt']]}],
+       s:[['İstasyon sokakta','Der Bahnhof ist auf der Straße'],['Hastane şehirde','Das Krankenhaus ist in der Stadt']]},
+      {id:"aile",ad:"Aile",w:[["anne","Mutter","İngilizce \"mother\" ile akrabadır."],["baba","Vater","İngilizce \"father\" ile akrabadır."],["erkek kardeş","Bruder","İngilizce \"brother\" ile akrabadır."],["kız kardeş","Schwester","İngilizce \"sister\" ile akrabadır."],["çocuk","Kind",""],["arkadaş","Freund",""]],
+       s:[["Annem evde","Meine Mutter ist zu Hause"],["Arkadaşım okulda","Mein Freund ist in der Schule"]]},
+      {id:"ren",ad:"Renkler",w:[["kırmızı","rot",""],["mavi","blau","İngilizce \"blue\" ile akrabadır."],["yeşil","grün","İngilizce \"green\" ile akrabadır."],["sarı","gelb","İngilizce \"yellow\" ile akrabadır."],["siyah","schwarz",""],["beyaz","weiß","ß harfi \"ss\" gibi okunur. Yazarken \"weiss\" de kabul edilir."]],
+       s:[["Elma kırmızı","Der Apfel ist rot"],["Kedi siyah","Die Katze ist schwarz"]]},
+      {id:"sif",ad:"Sıfatlar",w:[["büyük","groß",""],["küçük","klein",""],["iyi","gut","İngilizce \"good\" ile akrabadır."],["kötü","schlecht",""],["sıcak","heiß",""],["soğuk","kalt","İngilizce \"cold\" ile akrabadır."]],
+       s:[["Su soğuk","Das Wasser ist kalt"],["Ev büyük","Das Haus ist groß"]]},
+      {id:"fii",ad:"Fiiller",w:[["yemek yemek","essen",""],["içmek","trinken","İngilizce \"drink\" ile akrabadır."],["gitmek","gehen","İngilizce \"go\" ile akrabadır."],["gelmek","kommen","İngilizce \"come\" ile akrabadır."],["görmek","sehen","İngilizce \"see\" ile akrabadır."],["istemek","wollen","İngilizce \"will\" ile akrabadır."]],
+       s:[["Ben su içiyorum","Ich trinke Wasser"],["Sen okula gidiyorsun","Du gehst zur Schule"]]},
+      {id:"ali",ad:"Alışveriş",w:[["para","Geld",""],["fiyat","Preis",""],["pahalı","teuer",""],["ucuz","billig",""],["açık","offen",""],["kapalı","geschlossen",""]],
+       s:[["Bu pahalı","Das ist teuer"],["Banka açık","Die Bank ist offen"]]},
+      {id:"sey",ad:"Seyahat",w:[["otel","Hotel",""],["uçak","Flugzeug","Flug = uçuş, Zeug = araç gereç. Kelime \"uçuş aracı\" demek."],["bilet","Fahrkarte",""],["havalimanı","Flughafen","Flug = uçuş, Hafen = liman. Kelime \"uçuş limanı\" demek."],["otobüs","Bus",""],["harita","Karte",""]],
+       s:[["Bilet nerede?","Wo ist die Fahrkarte?"],["Otel şehirde","Das Hotel ist in der Stadt"]]},
+      {id:"doga",ad:"Doğa",w:[["güneş","Sonne",""],["yağmur","Regen","İngilizce \"rain\" ile akrabadır."],["deniz","Meer",""],["ağaç","Baum",""],["dağ","Berg",""],["nehir","Fluss",""]],
+       s:[["Bugün yağmur var","Heute gibt es Regen"],["Ağaç büyük","Der Baum ist groß"]]},
+      {id:"gun",ad:"Günler",w:[["pazartesi","Montag",""],["salı","Dienstag",""],["çarşamba","Mittwoch",""],["perşembe","Donnerstag",""],["cuma","Freitag",""],["hafta sonu","Wochenende","Woche = hafta, Ende = son. Kelime \"haftanın sonu\" demek."]],
+       s:[["Bugün cuma","Heute ist Freitag"],["Yarın hafta sonu","Morgen ist Wochenende"]]}],
     st:[
       {ad:'Kafede',o:'Garsona sipariş verirsin.',n:[['Hallo! Was möchten Sie?','Merhaba! Ne istersiniz?'],['Noch etwas?','Başka bir şey var mı?'],['Bitte schön.','Buyurun.']],
        c:[[['Wasser, bitte.','Su, lütfen.',2],['Ich will Brot.','Ekmek istiyorum.',1],['Katze.','Kedi.',0]],[['Nein, danke.','Hayır, teşekkürler.',2],['Ja, Milch, bitte.','Evet, süt lütfen.',2],['Hund.','Köpek.',0]],[['Danke!','Teşekkürler!',2],['Tschüss.','Hoşça kal.',1],['Haus.','Ev.',0]]]},
@@ -377,6 +428,7 @@ function touch(w,ok,final){
 function bestVoice(){
   try{const l=L[S.lang].tts.slice(0,2),v=speechSynthesis.getVoices().filter(x=>x.lang.toLowerCase().startsWith(l));
     return v.find(x=>/natural|neural|premium|enhanced/i.test(x.name))||v.find(x=>/google/i.test(x.name))||v.find(x=>!x.localService)||v[0]||null}catch(e){return null}}
+const hap=k=>{const h=NP('Haptics');if(!h)return;try{k==='ok'?h.notification({type:'SUCCESS'}):k==='no'?h.notification({type:'ERROR'}):h.impact({style:'LIGHT'})}catch(e){}};
 let toastT=null;
 function toast(msg,label,fn){
   let el=$('#toast');if(!el){el=document.createElement('div');el.id='toast';el.setAttribute('role','status');document.body.appendChild(el)}
@@ -498,9 +550,13 @@ function render0(){
   const days=[...Array(7)].map((_,i)=>{const d=new Date(Date.now()-(6-i)*DAY);return `<span class="${S.min[dkey(d)]?'on':''}" title="${dkey(d)}">${['Pz','Pt','Sa','Ça','Pe','Cu','Ct'][d.getDay()]}</span>`}).join('');
   const due=allWords().filter(isDue).length, mis=mistakes().length;
   const hk=V.tab+S.lang+V.view,fresh=V.hk!==hk;V.hk=hk;
+  const aw=allWords(),pctAll=aw.length?aw.reduce((a,w)=>a+ws(w).lvl,0)/(aw.length*4)*100:0;
+  const lvlName=pctAll<8?'Tohum bahçesi':pctAll<25?'Filiz bahçesi':pctAll<50?'Genç bahçe':pctAll<80?'Gür bahçe':'Orman';
+  const nx=due?{ad:'Susayan bitkiler'}:nextGroup();
   $('#app').innerHTML=`
   <div class="top"><div class="brand">${logo}<div><h1>filiz</h1><div class="muted">Türkçe konuşanlar için dil bahçesi</div></div></div>
     <label class="muted">Öğrendiğin dil <select id="lang">${Object.keys(L).map(k=>`<option value="${k}" ${k===S.lang?'selected':''}>${L[k].ad}</option>`).join('')}</select></label> <button class="btn ghost" data-act="mute" aria-pressed="${!S.mute}">Ses: ${S.mute?'kapalı':'açık'}</button></div>
+  <section class="next"><div><div class="muted">Sıradaki ders</div><h2>${esc(nx.ad)}</h2><div class="muted">${lvlName}, %${Math.round(pctAll)} çiçek açtı</div></div><button class="btn" data-act="quick">Başla</button></section>
   <section class="week"><div class="week-row"><strong>Bu hafta ${wm} / ${S.goal} dakika</strong>
     <label class="muted">Hedef <select id="goal">${[30,60,90,150].map(g=>`<option ${g===S.goal?'selected':''}>${g}</option>`).join('')}</select> dk</label></div>
     <div class="bar"><i style="width:${pc}%"></i></div>
@@ -541,15 +597,19 @@ function tab(due){
 /* ---------- Ders ---------- */
 function opts(w,key,ans,pool){
   const o=shuffle(pool.filter(x=>x[key]!==w[key])).slice(0,3).map(x=>x[key]);return shuffle(o.concat(ans));}
+function lessonFor(g){
+  const srt=g.w.slice().sort((a,b)=>ws(a).lvl-ws(b).lvl);
+  return{list:srt.slice(0,Math.min(3,srt.length)),sents:g.w.every(w=>ws(w).lvl>=1)?g.s:[]}}
+function nextGroup(){const gs=groups();return gs.find(x=>x.w.some(w=>ws(w).lvl<4))||gs[0]}
 function buildLesson(ws_,sents){
   const pool=allWords(),Q=[];
   ws_.forEach(w=>{if(ws(w).lvl===0)Q.push({k:'intro',w})});
   shuffle(ws_).forEach(w=>Q.push(Math.random()<.5?{k:'tr2t',w,o:opts(w,'tr',w.tr,pool)}:{k:'t2tr',w,o:opts(w,'t',w.t,pool)}));
   shuffle(ws_).forEach((w,i)=>Q.push({k:i%2?'listen':'type',w,o:opts(w,'t',w.t,pool),final:true}));
-  shuffle(sents).slice(0,2).forEach(s=>Q.push({k:'build',s,tiles:shuffle(s.t.split(' '))}));
+  shuffle(sents).slice(0,2).forEach((s,i)=>Q.push({k:i?'lbuild':'build',s,tiles:shuffle(s.t.split(' '))}));
   return Q;}
 function start(list,sents){
-  V.typed='';V.sug=null;V.view='lesson';V.lq=buildLesson(list,sents||[]);V.i=0;V.t0=Date.now();V.fb=null;V.built=[];V.total=V.lq.length;V.did=0;render();}
+  V.stat={ok:0,no:0,newW:0};V.typed='';V.sug=null;V.view='lesson';V.lq=buildLesson(list,sents||[]);V.i=0;V.t0=Date.now();V.fb=null;V.built=[];V.total=V.lq.length;V.did=0;render();}
 function renderLesson(){
   const q=V.lq[V.i];if(!q)return finish();
   const a=$('#app'),fb=V.fb,pc=V.did/V.total*100;
@@ -563,23 +623,24 @@ function renderLesson(){
     body=`<div class="prompt">${title}</div>${q.k==='listen'?`<div class="row"><button class="say big" data-say="${esc(q.w.t)}" aria-label="Dinle">♪</button><span class="muted">Dokun, tekrar dinle</span></div>`:`<div class="row"><span class="big">${esc(show)}</span>${q.k==='tr2t'?say(q.w.t):''}</div>`}<div class="opts">${q.o.map((o,oi)=>`<button class="opt ${fb?(o===(q.k==='tr2t'?q.w.tr:q.w.t)?'ok':(fb.pick===o?'no':'')):''}" data-pick="${esc(o)}" ${fb?'disabled':''}><span class="ltr">${'ABCD'[oi]}</span><span>${esc(o)}</span></button>`).join('')}</div>`;
     if(q.k==='listen'&&!fb)setTimeout(()=>speak(q.w.t),200);
   }else if(q.k==='type'){act='<button class="btn" data-act="check">Kontrol et</button>';body=`<div class="prompt">Şunu yaz</div><div class="big">${esc(q.w.tr)}</div><div class="row"><input type="text" id="ty" autocomplete="off" autocapitalize="off" placeholder="${L[S.lang].ad} karşılığı" value="${esc(V.typed||'')}" ${fb?'disabled':''}></div>${V.sug&&!fb?`<div class="hint" role="status">Şunu mu demek istedin: <b>${esc(V.sug)}</b>?<div class="row" style="margin-top:8px"><button class="btn" data-act="sugyes">Evet, bu</button><button class="btn ghost" data-act="sugno">Düzelteyim</button></div></div>`:''}`}
-  else{act=`<button class="btn" data-act="check" ${V.built.length?'':'disabled'}>Kontrol et</button>`;body=`<div class="prompt">Cümleyi kur</div><div class="big" style="font-size:1.5rem">${esc(q.s.tr)}</div><div class="tray">${V.built.map((t,i)=>`<button class="tile" data-un="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div><div class="tiles">${q.tiles.map((t,i)=>(V.usedIdx||[]).includes(i)?'':`<button class="tile" data-tile="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div>`}
+  else{act=`<button class="btn" data-act="check" ${V.built.length?'':'disabled'}>Kontrol et</button>`;body=`${q.k==='lbuild'?`<div class="prompt">Duyduğunu kur</div><div class="row"><button class="say big" data-say="${esc(q.s.t)}" aria-label="Dinle">♪</button><span class="muted">Dinle ve kelimeleri sırala</span></div>`:`<div class="prompt">Cümleyi kur</div><div class="big" style="font-size:1.5rem">${esc(q.s.tr)}</div>`}<div class="tray">${V.built.map((t,i)=>`<button class="tile" data-un="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div><div class="tiles">${q.tiles.map((t,i)=>(V.usedIdx||[]).includes(i)?'':`<button class="tile" data-tile="${i}" ${fb?'disabled':''}>${esc(t)}</button>`).join('')}</div>`}
+  if(q.k==='lbuild'&&!fb&&fresh)setTimeout(()=>speak(q.s.t),250);
   const ans=q.w?(q.k==='tr2t'?q.w.tr:q.w.t):q.s&&q.s.t;
   const foot=fb?`<div class="fb ${fb.ok?'ok':'no'}" role="status" aria-live="polite"><div><b>${fb.ok?'Güzel!':'Sorun değil, sonra tekrar ederiz.'}</b><div>${fb.ok?'':'Doğrusu: '+esc(ans)}${!fb.ok&&q.w&&q.w.h?`<br><span class="muted">Köprü: ${esc(q.w.h)}</span>`:''}</div></div><button class="btn" data-act="next">Devam</button></div>`:'';
   a.innerHTML=`<div class="lesson"><div class="lhead"><button class="xbtn" data-act="quit" aria-label="Dersten çık">×</button><div class="bar"><i style="width:${pc}%"></i></div></div><div class="q${fresh?' enter':''}">${body}</div>${foot}${act&&!fb?`<div class="act">${act}</div>`:''}</div>`;
   const ty=$('#ty');if(ty&&!fb&&!V.sug){ty.focus();ty.setSelectionRange(ty.value.length,ty.value.length)}
 }
 function answer(ok,q){
-  V.fb={ok,pick:V.pick};sfx[ok?'ok':'no']();
+  V.fb={ok,pick:V.pick};sfx[ok?'ok':'no']();hap(ok?'ok':'no');if(V.stat)V.stat[ok?'ok':'no']++;
   if(q.w)touch(q.w,ok,q.final);
   if(!ok&&!q.retry){V.lq.push(Object.assign({},q,{retry:true,fb:null}));V.total++;}
   render();}
-function next(){V.typed='';V.sug=null;V.fb=null;V.built=[];V.usedIdx=[];V.did++;V.i++;render();}
+function next(){const cq=V.lq&&V.lq[V.i];if(cq&&cq.k==='intro'&&V.stat)V.stat.newW++;V.typed='';V.sug=null;V.fb=null;V.built=[];V.usedIdx=[];V.did++;V.i++;render();}
 function finish(){
   const mins=Math.max(1,Math.round((Date.now()-V.t0)/60000));
-  const k=dkey();S.min[k]=(S.min[k]||0)+mins;save();scheduleReminders();V.view='done';V.res={mins};render();}
+  const k=dkey();S.min[k]=(S.min[k]||0)+mins;save();scheduleReminders();V.view='done';V.res={mins,stat:V.stat};render();}
 function renderDone(){
-  $('#app').innerHTML=`<div class="lesson" style="align-items:center;justify-content:center;text-align:center"><div style="width:120px">${plant(4,false)}</div><h2>${V.res.story!=null?'Sahne bitti: '+V.res.story+' / 6 kibarlık':'Ders tamam'}</h2><p class="muted">Bahçene ${V.res.mins} dakika sulama yazıldı.</p><button class="btn" data-act="home">Bahçeye dön</button></div>`;V.lk=null;V.hk=null;confetti();}
+  $('#app').innerHTML=`<div class="lesson" style="align-items:center;justify-content:center;text-align:center"><div style="width:120px">${plant(4,false)}</div><h2>${V.res.story!=null?'Sahne bitti: '+V.res.story+' / 6 kibarlık':'Ders tamam'}</h2>${V.res.stat?`<div class="chips" style="justify-content:center"><span class="chip">${V.res.stat.ok} doğru</span>${V.res.stat.no?`<span class="chip warn">${V.res.stat.no} yanlış</span>`:''}${V.res.stat.newW?`<span class="chip">${V.res.stat.newW} yeni tohum</span>`:''}</div>`:''}<p class="muted">Bahçene ${V.res.mins} dakika sulama yazıldı.</p><button class="btn" data-act="home">Bahçeye dön</button></div>`;V.lk=null;V.hk=null;confetti();}
 function confetti(){
   sfx.done();
   const cols=['#2c9a68','#f0b429','#d4553f','#8fd3e8','#7fe0b0'];
@@ -613,6 +674,7 @@ document.addEventListener('click',e=>{
 const msg=t=>{const e=$('#bkmsg');if(e)e.textContent=t};
 function handle(b){
   const d=b.dataset,q=V.lq&&V.lq[V.i];
+  hap('tap');
   if(d.tab)sfx.tab();else if(d.say||d.tile!=null||d.un!=null)sfx.tile();
   else if(d.pick==null&&d.act!=='check'&&d.act!=='mute')sfx.click();
   if(d.plant!=null){V.sel=V.sel===d.plant?null:d.plant;const w=allWords().find(x=>x.t===d.plant);if(w&&V.sel)speak(w.t);return render()}
@@ -634,11 +696,11 @@ function handle(b){
   if(a==='sugyes'&&q){V.sug=null;V.pick=q.w.t;return answer(true,q)}
   if(a==='sugno'){V.sug=null;return render()}
   if(a==='mute'){S.mute=!S.mute;save();sfx.click();return render()}
-  if(a==='lesson'){const g=groups().find(x=>x.id===d.g);V.usedIdx=[];start(g.w,g.s)}
+  if(a==='lesson'){const g=groups().find(x=>x.id===d.g);V.usedIdx=[];const l=lessonFor(g);start(l.list,l.sents)}
   else if(a==='water'){V.usedIdx=[];start(shuffle(allWords().filter(isDue)).slice(0,5),[])}
   else if(a==='quick'){V.usedIdx=[];const dw=allWords().filter(isDue);
     if(dw.length)start(shuffle(dw).slice(0,5),[]);
-    else{const g=groups().find(x=>x.w.some(w=>ws(w).lvl<4))||groups()[0];start(g.w,g.s)}}
+    else{const l=lessonFor(nextGroup());start(l.list,l.sents)}}
   else if(a==='mist'){V.usedIdx=[];start(shuffle(mistakes()).slice(0,5),[])}
   else if(a==='story'){V.view='story';V.si=+d.si;V.n=0;V.sc=0;V.ans=[];render()}
   else if(a==='snext'){V.n++;render()}
