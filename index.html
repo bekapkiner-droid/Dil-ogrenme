@@ -424,14 +424,14 @@ function render(){
   render0();renderDock();document.body.classList.toggle('inlesson',V.view!=='home');
   const k=V.view;
   if(k==='home'&&V.ptab!==V.tab){
-    const dir=TABS.indexOf(V.tab)>=TABS.indexOf(V.ptab||'yol')?1:-1,had=V.ptab!==undefined;V.ptab=V.tab;
-    const m=$('main');if(had&&m&&m.animate)m.animate(reduce?[{opacity:0},{opacity:1}]:[{opacity:0,transform:`translateX(${dir*60}px) scale(.97)`,filter:'blur(8px)'},{opacity:1,transform:'none',filter:'blur(0)'}],{duration:450,easing:'cubic-bezier(.2,.9,.3,1)'});
+    const dir=TABS.indexOf(V.tab)>=TABS.indexOf(V.ptab||'yol')?1:-1,had=V.ptab!==undefined;V.ptab=V.tab;if(had)window.scrollTo(0,0);
+    const m=$('main');if(had&&m&&m.animate)m.animate(reduce?[{opacity:0},{opacity:1}]:[{opacity:0,transform:`translateX(${dir*60}px)`,filter:'blur(8px)'},{opacity:1,transform:'none',filter:'blur(0)'}],{duration:450,easing:'cubic-bezier(.2,.9,.3,1)'});
   }
   if(V.pv!==k){
-    const first=V.pv===undefined;V.pv=k;
+    const first=V.pv===undefined;V.pv=k;window.scrollTo(0,0);
     if(!first&&$('#app').animate){
       $('#app').animate(reduce?[{opacity:0},{opacity:1}]
-        :[{opacity:0,transform:`translateX(${k==='home'?-90:90}px) scale(.9)`,filter:'blur(12px)'},{opacity:1,transform:'none',filter:'blur(0)'}],
+        :[{opacity:0,transform:`translateX(${k==='home'?-90:90}px)`,filter:'blur(12px)'},{opacity:1,transform:'none',filter:'blur(0)'}],
         {duration:reduce?300:650,easing:'cubic-bezier(.2,1.1,.3,1)'});
       if(!reduce){const w=document.createElement('div');w.className='wipe';document.body.appendChild(w);
         w.animate([{transform:'translateX(-110%)'},{transform:'translateX(110%)'}],{duration:700,easing:'ease-in-out'}).onfinish=()=>w.remove();}
@@ -552,7 +552,7 @@ document.addEventListener('click',e=>{
   if(nav&&!reduce){
     V.busy=true;b.classList.add('press');
     const tgt=d.tab?$('main'):(d.act==='next'||d.act==='snext')?null:$('#app');
-    const ex=tgt&&tgt.animate?tgt.animate([{opacity:1,transform:'none',filter:'blur(0)'},{opacity:0,transform:`translateX(${d.tab?-36:-60}px) scale(.96)`,filter:'blur(6px)'}],{duration:200,easing:'cubic-bezier(.5,0,.8,.4)',fill:'forwards'}):null;
+    const ex=tgt&&tgt.animate?tgt.animate([{opacity:1,transform:'none',filter:'blur(0)'},{opacity:0,transform:`translateX(${d.tab?-36:-60}px)`,filter:'blur(6px)'}],{duration:200,easing:'cubic-bezier(.5,0,.8,.4)',fill:'forwards'}):null;
     setTimeout(()=>{V.busy=false;if(ex)ex.cancel();handle(b)},ex?200:140);
   }else handle(b);
 });
