@@ -351,7 +351,7 @@ function ripple(b,e){
 /* ---------- Durum ---------- */
 let S={lang:'en',goal:60,words:{},custom:{},min:{},story:{}};
 try{const r=localStorage.getItem('filiz2');if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
-const save=()=>{try{localStorage.setItem('filiz2',JSON.stringify(S))}catch(e){}};
+const save=()=>{S.ts=Date.now();try{localStorage.setItem('filiz2',JSON.stringify(S))}catch(e){}queuePush()};
 let V={tab:'yol',view:'home',tip:null,tr:null};
 const groups=()=>{
   const g=L[S.lang].g.map(x=>({id:x.id,ad:x.ad,w:x.w.map(a=>({tr:a[0],t:a[1],h:a[2]})),s:x.s.map(a=>({tr:a[0],t:a[1]}))}));
@@ -399,6 +399,41 @@ async function toggleNotify(){
     save();await scheduleReminders();
     return S.notify?'Hatırlatmalar açıldı. Her akşam 19:00 ve bitkiler susayınca haber veririm.':'Hatırlatmalar kapatıldı.';
   }catch(e){return 'Bildirim ayarlanamadı.'}}
+
+/* ---------- Google girişi ve bulutta saklama (yalnızca mobil uygulama) ---------- */
+const NP=n=>{try{return window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?Capacitor.Plugins[n]:null}catch(e){return null}};
+let USER=null,pushT=null;
+function mergeState(a,b){
+  const n=(a.ts||0)>=(b.ts||0)?a:b,o=n===a?b:a,r=Object.assign({},o,n);
+  r.words=Object.assign({},o.words);
+  for(const [k,v] of Object.entries(n.words||{})){const x=r.words[k];r.words[k]=!x||v.lvl>x.lvl||(v.lvl===x.lvl&&v.due>x.due)?v:x}
+  r.min=Object.assign({},o.min);for(const [k,v] of Object.entries(n.min||{}))r.min[k]=Math.max(v,r.min[k]||0);
+  r.story=Object.assign({},o.story);for(const [k,v] of Object.entries(n.story||{}))r.story[k]=Math.max(v,r.story[k]||0);
+  r.custom={};
+  for(const l of new Set([...Object.keys(a.custom||{}),...Object.keys(b.custom||{})])){
+    const seen=new Set(),out=[];
+    for(const w of [...((a.custom||{})[l]||[]),...((b.custom||{})[l]||[])]){if(!seen.has(w[1])){seen.add(w[1]);out.push(w)}}
+    r.custom[l]=out}
+  return r}
+async function cloudPush(){
+  const fs=NP('FirebaseFirestore');if(!fs||!USER)return;
+  await fs.setDocument({reference:'users/'+USER.uid,data:{state:JSON.stringify(S),ts:S.ts||Date.now()}})}
+async function cloudPull(){
+  const fs=NP('FirebaseFirestore');if(!fs||!USER)return;
+  const r=await fs.getDocument({reference:'users/'+USER.uid});
+  const d=r&&r.snapshot&&r.snapshot.data;
+  if(d&&d.state)S=mergeState(S,JSON.parse(d.state));
+  S.ts=Date.now();try{localStorage.setItem('filiz2',JSON.stringify(S))}catch(e){}
+  await cloudPush()}
+function queuePush(){if(!USER)return;clearTimeout(pushT);pushT=setTimeout(()=>{cloudPush().catch(()=>{})},2500)}
+async function cloudInit(){
+  const au=NP('FirebaseAuthentication');if(!au)return;
+  try{const r=await au.getCurrentUser();if(r&&r.user){USER=r.user;await cloudPull();render()}}catch(e){}}
+async function googleIn(){
+  const au=NP('FirebaseAuthentication');if(!au)return 'Giriş yalnızca mobil uygulamada çalışır.';
+  try{const r=await au.signInWithGoogle();USER=r.user;await cloudPull();scheduleReminders();return 'Giriş yapıldı. İlerleme bulutla eşitlendi.'}
+  catch(e){const m=String((e&&e.message)||e);return /cancel/i.test(m)?'Giriş iptal edildi.':'Giriş yapılamadı: '+m.slice(0,140)}}
+async function googleOut(){const au=NP('FirebaseAuthentication');try{await au.signOut()}catch(e){}USER=null;return 'Çıkış yapıldı. İlerleme bu telefonda kalır.'}
 
 /* ---------- Bitki çizimi ---------- */
 function plant(l,wilt){
@@ -461,6 +496,7 @@ function tab(due){
     <div class="grid">${gs.map(g=>{const av=g.w.reduce((a,w)=>a+ws(w).lvl,0)/(g.w.length*4)*100;return `<div class="card"><h3>${esc(g.ad)}</h3><div class="mini"><i style="width:${av}%"></i></div><div class="chips">${g.w.map(w=>`<span class="chip">${esc(w.t)}</span>`).join('')}</div><div><button class="btn" data-act="lesson" data-g="${g.id}">${av?'Devam':'Başla'}</button></div></div>`}).join('')}</div>
     <h2 style="margin-top:22px">Kendi kelimeni ekle</h2><p class="muted">Eklediğin kelime bahçene yeni bir tohum olarak düşer. Ses benzerliği ipucunu kendin yaz.</p>
     <form class="add" id="addf"><input type="text" id="a-tr" placeholder="Türkçesi" required><input type="text" id="a-t" placeholder="${L[S.lang].ad} karşılığı" required><input type="text" id="a-h" placeholder="Türkçe ses ipucu (isteğe bağlı)"><button class="btn" type="submit">Tohumu ek</button></form>
+    <h2 style="margin-top:22px">Hesap</h2>${NP('FirebaseAuthentication')?(USER?`<p class="muted"><b>${esc(USER.displayName||'')}</b> ${esc(USER.email||'')}<br>İlerleme bulutta saklanıyor. Başka telefonda aynı hesapla girince geri gelir.</p><div class="row"><button class="btn ghost" data-act="gsync">Şimdi eşitle</button><button class="btn ghost" data-act="gout">Çıkış yap</button></div>`:`<p class="muted">Giriş yap, ilerlemen bulutta saklansın. Telefon değiştirsen de kaybolmaz.</p><div class="row"><button class="btn" data-act="gin">Google ile giriş yap</button></div>`):`<p class="muted">Google ile giriş mobil uygulamada çalışır.</p>`}<p class="muted" id="gmsg" role="status"></p>
     <h2 style="margin-top:22px">Hatırlatmalar</h2>${LN()?`<p class="muted">Akşam 19:00'da ve bitkilerin susadığı zaman telefona bildirim gelir. Seri ya da suçlama yok.</p><p class="muted">Xiaomi telefonlarda bildirim gelmezse: Ayarlar, Uygulamalar, Filiz içinde "Otomatik başlat"ı aç ve pil tasarrufunu "Kısıtlama yok" yap.</p><div class="row"><button class="btn ${S.notify?'':'ghost'}" data-act="notify">${S.notify?'Hatırlatmalar açık':'Hatırlatmaları aç'}</button></div>`:`<p class="muted">Bildirimler mobil uygulamada çalışır. Tarayıcıdaki sürümde yalnızca sayfa açıkken hatırlatma görürsün.</p>`}<p class="muted" id="ntmsg" role="status"></p>
     <h2 style="margin-top:22px">İlerlemeni taşı</h2><p class="muted">Hesap sistemi yok, ilerleme bu tarayıcıda durur. Başka cihaza geçmek için kodu kopyala, orada yapıştır.</p>
     <div class="row"><button class="btn ghost" data-act="bkcopy">Kodu kopyala</button><input type="text" id="bk" placeholder="Kodu buraya yapıştır" aria-label="Yedek kodu"><button class="btn ghost" data-act="bkload">Geri yükle</button></div><p class="muted" id="bkmsg" role="status"></p>`;
@@ -548,7 +584,7 @@ function renderStory(){
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||b.disabled||V.busy)return;
   ripple(b,e);
-  const d=b.dataset,nav=d.tab||d.ch!=null||(d.act&&d.act!=='check'&&d.act!=='mute'&&!/^sug/.test(d.act));
+  const d=b.dataset,nav=d.tab||d.ch!=null||(d.act&&d.act!=='check'&&d.act!=='mute'&&!/^sug/.test(d.act)&&!/^g(in|out|sync)$/.test(d.act));
   if(nav&&!reduce){
     V.busy=true;b.classList.add('press');
     const tgt=d.tab?$('main'):(d.act==='next'||d.act==='snext')?null:$('#app');
@@ -573,6 +609,9 @@ function handle(b){
     const ok=()=>msg('Kod kopyalandı.'),no=()=>{const i=$('#bk');i.value=code;i.select();msg('Kodu elle kopyala.')};
     try{navigator.clipboard.writeText(code).then(ok,no)}catch(e){no()}return}
   if(a==='bkload'){try{const o=JSON.parse(decodeURIComponent(escape(atob($('#bk').value.trim()))));if(!o||typeof o!=='object'||!o.words)throw 0;S=Object.assign({lang:'en',goal:60,words:{},custom:{},min:{},story:{}},o);save();render();msg('İlerleme geri yüklendi.')}catch(e){msg('Kod geçersiz.')}return}
+  if(a==='gin'||a==='gout'||a==='gsync'){
+    const f=a==='gin'?googleIn:a==='gout'?googleOut:async()=>{try{await cloudPull();return 'Eşitlendi.'}catch(e){return 'Eşitlenemedi.'}};
+    f().then(t=>{render();const e=$('#gmsg');if(e)e.textContent=t});return}
   if(a==='notify'){toggleNotify().then(t=>{render();const e=$('#ntmsg');if(e)e.textContent=t});return}
   if(a==='sugyes'&&q){V.sug=null;V.pick=q.w.t;return answer(true,q)}
   if(a==='sugno'){V.sug=null;return render()}
@@ -607,4 +646,5 @@ document.addEventListener('submit',e=>{
     (S.custom[S.lang]=S.custom[S.lang]||[]).push([tr,t,h]);save();render();}});
 render();
 scheduleReminders();
+cloudInit();
 </script>

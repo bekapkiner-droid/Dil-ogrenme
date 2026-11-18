@@ -2,8 +2,18 @@
   "appId": "app.filiz.dilbahcesi",
   "appName": "Filiz",
   "webDir": "www",
-  "android": { "allowMixedContent": false },
+  "android": {
+    "allowMixedContent": false
+  },
   "plugins": {
-    "LocalNotifications": { "smallIcon": "ic_stat_icon_config_sample", "iconColor": "#2C9A68" }
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#2C9A68"
+    },
+    "FirebaseAuthentication": {
+      "providers": [
+        "google.com"
+      ]
+    }
   }
 }

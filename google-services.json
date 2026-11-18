@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1098200471413",
+    "project_id": "filiz-2e49b",
+    "storage_bucket": "filiz-2e49b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1098200471413:android:961e63a398c73a3728e53c",
+        "android_client_info": {
+          "package_name": "app.filiz.dilbahcesi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1098200471413-2f6tms15m2suu91dkimmkcmb1qte1s3f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.filiz.dilbahcesi",
+            "certificate_hash": "eec822df8de5d142da86e4590844e3577e79cb22"
+          }
+        },
+        {
+          "client_id": "1098200471413-fglafsorsln5av9ep09vgen80ehrb7so.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcvO77kDC4NRNvOd5IT7Bg-6spPnStnrs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1098200471413-fglafsorsln5av9ep09vgen80ehrb7so.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
