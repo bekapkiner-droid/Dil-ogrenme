@@ -431,7 +431,7 @@ async function cloudInit(){
   try{const r=await au.getCurrentUser();if(r&&r.user){USER=r.user;await cloudPull();render()}}catch(e){}}
 async function googleIn(){
   const au=NP('FirebaseAuthentication');if(!au)return 'Giriş yalnızca mobil uygulamada çalışır.';
-  try{const r=await au.signInWithGoogle();USER=r.user;await cloudPull();scheduleReminders();return 'Giriş yapıldı. İlerleme bulutla eşitlendi.'}
+  try{let r;try{r=await au.signInWithGoogle()}catch(e1){if(/no credential/i.test(String((e1&&e1.message)||e1)))r=await au.signInWithGoogle({useCredentialManager:false});else throw e1}USER=r.user;await cloudPull();scheduleReminders();return 'Giriş yapıldı. İlerleme bulutla eşitlendi.'}
   catch(e){const m=String((e&&e.message)||e);return /cancel/i.test(m)?'Giriş iptal edildi.':'Giriş yapılamadı: '+m.slice(0,140)}}
 async function googleOut(){const au=NP('FirebaseAuthentication');try{await au.signOut()}catch(e){}USER=null;return 'Çıkış yapıldı. İlerleme bu telefonda kalır.'}
 

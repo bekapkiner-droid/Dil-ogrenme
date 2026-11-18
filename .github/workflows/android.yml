@@ -27,6 +27,8 @@ jobs:
       - run: npx cap sync android
       - name: Debug APK derle
         run: cd android && ./gradlew assembleDebug --no-daemon
+      - name: APK imza parmak izi (Google girişi için SHA-1 ile eşleşmeli)
+        run: keytool -printcert -jarfile android/app/build/outputs/apk/debug/app-debug.apk | grep -E "SHA1|SHA256"
       - uses: actions/upload-artifact@v4
         with:
           name: filiz-debug-apk
