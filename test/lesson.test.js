@@ -23,6 +23,15 @@ const assert=require('assert');
   assert(done,'ders bitmedi');
   await p.click('[data-act=home]');await wait();await wait();
 
+  // 1b) yazım önerisi: "wader" yazınca "water" önerilsin, "Evet, bu" doğru saysın
+  await p.click('[data-act=lesson]');await wait();
+  await p.evaluate(()=>{V.lq=[{k:'type',w:allWords().find(w=>w.t==='water'),final:true}];V.i=0;V.total=1;V.did=0;V.typed='';V.sug=null;V.lk=null;render()});
+  await p.fill('#ty','wader');await p.click('[data-act=check]');await wait();
+  assert((await p.textContent('.hint')).includes('water'),'öneri çıkmadı');
+  await p.click('[data-act=sugyes]');await wait();
+  assert(await p.$('.fb.ok'),'öneri kabulü doğru sayılmadı');
+  await p.evaluate(()=>{V.view='home';render()});await wait();
+
   // 2) bahçe: bitkiye dokun, panel açılsın
   await p.click('[data-tab=bahce]');await wait();await wait();
   await p.click('.plant');await wait();
