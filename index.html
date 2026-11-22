@@ -442,7 +442,20 @@ function toast(msg,label,fn){
   if(label){const b=document.createElement('button');b.textContent=label;b.onclick=fn;el.appendChild(b)}
   el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),label?10000:4500)}
 const TTS_HELP='Ayarlar, Ek ayarlar, Diller ve giriş, Metin okuma çıkışı: Google Konuşma Servisi seçili olmalı.';
-async function speak(t){
+const slugT=t=>String(t).toLowerCase().replace(/ß/g,'ss').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+let PACK={},curAudio=null;
+function loadPack(l){
+  if(PACK[l]!==undefined)return;PACK[l]=null;
+  try{fetch('audio/pack-'+l+'.json').then(r=>r.ok?r.json():null).then(j=>{PACK[l]=j}).catch(()=>{PACK[l]=undefined})}catch(e){PACK[l]=undefined}}
+function playClip(t){
+  try{
+    const b64=(PACK[S.lang]||{})[slugT(t)];if(!b64){loadPack(S.lang);return false}
+    if(curAudio){try{curAudio.pause()}catch(e){}}
+    const a=new Audio('data:audio/mpeg;base64,'+b64);curAudio=a;
+    const p=a.play();if(p&&p.catch)p.catch(()=>{if(curAudio===a)curAudio=null;speakTTS(t)});
+    return true}catch(e){return false}}
+function speak(t){if(!playClip(t))speakTTS(t)}
+async function speakTTS(t){
   const native=window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform();
   if(!native)return webSpeak(t);
   const tts=Capacitor.Plugins.TextToSpeech;
@@ -760,12 +773,13 @@ function handle(b){
 document.addEventListener('keydown',e=>{
   if(!e.target.closest('input')&&!e.ctrlKey&&!e.metaKey){const i='abcd'.indexOf(e.key.toLowerCase());const o=i>=0&&document.querySelectorAll('.opt')[i];if(o&&!o.disabled&&e.key.length===1)o.click()}if(e.key==='Enter'&&e.target.id==='ty'){const b=document.querySelector('[data-act=check]');b&&b.click()}});
 document.addEventListener('change',e=>{
-  if(e.target.id==='lang'){S.lang=e.target.value;save();render()}
+  if(e.target.id==='lang'){S.lang=e.target.value;save();loadPack(S.lang);render()}
   if(e.target.id==='goal'){S.goal=+e.target.value;save();render()}});
 document.addEventListener('submit',e=>{
   if(e.target.id==='addf'){e.preventDefault();
     const tr=$('#a-tr').value.trim(),t=$('#a-t').value.trim(),h=$('#a-h').value.trim();if(!tr||!t)return;
     (S.custom[S.lang]=S.custom[S.lang]||[]).push([tr,t,h]);save();render();}});
+loadPack(S.lang);
 render();
 scheduleReminders();
 cloudInit();

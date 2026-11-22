@@ -3,3 +3,4 @@ node_modules/
 /android/
 *.apk
 gradle.log
+audio/pack-*.json
