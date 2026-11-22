@@ -16,7 +16,8 @@
     "@capacitor/core": "^7.0.0",
     "@capacitor/haptics": "^7.0.5",
     "@capacitor/local-notifications": "^7.0.0",
-    "firebase": "^11.10.0"
+    "firebase": "^11.10.0",
+    "filiz-live": "file:plugins/filiz-live"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",

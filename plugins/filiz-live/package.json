@@ -1,0 +1,9 @@
+{
+  "name": "filiz-live",
+  "version": "1.0.0",
+  "description": "Filiz: ders sürerken canlı bildirim (Android Live Updates, geri düşüşle ilerleme çubuğu)",
+  "main": "index.js",
+  "files": ["android/", "index.js"],
+  "capacitor": { "android": { "src": "android" } },
+  "peerDependencies": { "@capacitor/core": ">=7.0.0" }
+}

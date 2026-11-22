@@ -459,12 +459,14 @@ const LN=()=>{try{return window.Capacitor&&Capacitor.isNativePlatform&&Capacitor
 async function scheduleReminders(){
   const ln=LN();if(!ln)return;
   try{
-    await ln.cancel({notifications:[{id:1},{id:2}]});
+    await ln.cancel({notifications:[{id:1},{id:2},{id:3}]});
     if(!S.notify)return;
     const notes=[{id:2,title:'Filiz',body:'Bahçen seni bekliyor. Birkaç dakika yeter.',schedule:{on:{hour:19,minute:0},allowWhileIdle:true}}];
     const dues=Object.values(S.words).filter(w=>w.lvl>0).map(w=>w.due);
     if(dues.length){const at=Math.max(Math.min(...dues),Date.now()+60*60*1000);
       notes.push({id:1,title:'Bitkiler susadı',body:'Bazı kelimelerin sulama zamanı geldi.',schedule:{at:new Date(at),allowWhileIdle:true}})}
+    const st=streakInfo();
+    if(st.atRisk){const at=st.mid-3*36e5;if(at>Date.now())notes.push({id:3,title:'Serin sıfırlanmak üzere',body:`Seri ${st.n} gün. Bugün bir ders bitirirsen serin sürer.`,schedule:{at:new Date(at),allowWhileIdle:true}})}
     await ln.schedule({notifications:notes});
   }catch(e){}}
 async function toggleNotify(){
@@ -475,6 +477,22 @@ async function toggleNotify(){
     save();await scheduleReminders();
     return S.notify?'Hatırlatmalar açıldı. Her akşam 19:00 ve bitkiler susayınca haber veririm.':'Hatırlatmalar kapatıldı.';
   }catch(e){return 'Bildirim ayarlanamadı.'}}
+
+/* ---------- Canlı ders bildirimi (yalnızca mobil uygulama, Android Live Updates) ---------- */
+let permAsked=false;
+async function ensurePerm(){
+  const ln=LN();if(!ln)return true;
+  try{const r=await ln.checkPermissions();if(r.display==='granted')return true;
+    if(r.display==='denied'||permAsked)return false;
+    permAsked=true;const q=await ln.requestPermissions();return q.display==='granted'}catch(e){return false}}
+async function liveUpdate(){
+  const lv=NP('FilizLive');if(!lv||V.view!=='lesson'||!V.lq)return;
+  if(!(await ensurePerm()))return;
+  const s=streakInfo(),total=V.total,done=Math.min(V.did,total),left=Math.max(0,total-done);
+  const line=s.n>0?(s.today?`Seri ${s.n} gün, bugün tamam`:`Seri ${s.n} gün, bitirirsen ${s.n+1} olur`):'Bitirince serin başlar';
+  try{await lv.show({title:`Ders sürüyor · ${left} soru kaldı`,text:s.resetAt?`${line}. Sıfırlanmasına kalan süre sağda.`:line,
+    subText:`${Math.min(done+1,total)} / ${total}`,chipText:`${left} soru`,progress:done,max:total,whenMs:s.resetAt||V.t0,countDown:!!s.resetAt})}catch(e){}}
+function liveEnd(){const lv=NP('FilizLive');if(lv)try{lv.cancel()}catch(e){}}
 
 /* ---------- Google girişi ve bulutta saklama (yalnızca mobil uygulama) ---------- */
 const NP=n=>{try{return window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?Capacitor.Plugins[n]:null}catch(e){return null}};
@@ -523,6 +541,24 @@ const logo='<svg viewBox="0 0 64 70" aria-hidden="true"><ellipse class="s-soil" 
 
 /* ---------- Ana ekran ---------- */
 function weekMin(){let m=0;for(let i=0;i<7;i++)m+=S.min[dkey(new Date(Date.now()-i*DAY))]||0;return m}
+/* ---------- Seri ---------- */
+function streakInfo(){
+  const now=new Date(),d0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const today=(S.min[dkey(d0)]||0)>0;
+  let n=0;const c=new Date(d0);if(!today)c.setDate(c.getDate()-1);
+  while((S.min[dkey(c)]||0)>0){n++;c.setDate(c.getDate()-1)}
+  const mid=new Date(d0);mid.setDate(mid.getDate()+1);
+  const resetAt=n>0?(today?+mid+864e5:+mid):0;
+  return{n,today,atRisk:!today&&n>0,resetAt,mid:+mid}}
+function fmtLeft(ms){
+  const m=Math.max(0,Math.floor(ms/6e4)),h=Math.floor(m/60);
+  if(h>=24)return Math.floor(h/24)+' gün '+(h%24)+' sa';
+  return h>0?h+' sa '+(m%60)+' dk':m+' dk'}
+function streakText(){
+  const s=streakInfo();
+  if(!s.n)return 'Bir ders bitirince serin başlar. Can yok, bahçen kaybolmaz.';
+  const left=fmtLeft(s.resetAt-Date.now());
+  return s.today?`Seri ${s.n} gün. Bugün tamam. Sıfırlanmasına ${left} var.`:`Seri ${s.n} gün. Bugün çalışmazsan ${left} sonra sıfırlanır.`}
 const TABS=['yol','bahce','hikaye','defter'];
 function renderDock(){
   const d=$('#dock');if(!d)return;
@@ -566,7 +602,7 @@ function render0(){
   <section class="week"><div class="week-row"><strong>Bu hafta ${wm} / ${S.goal} dakika</strong>
     <label class="muted">Hedef <select id="goal">${[30,60,90,150].map(g=>`<option ${g===S.goal?'selected':''}>${g}</option>`).join('')}</select> dk</label></div>
     <div class="bar"><i style="width:${pc}%"></i></div>
-    <div class="week-row"><div class="days">${days}</div><span class="muted">Seri yok, can yok. Ara verince bahçen sadece susar, kaybolmaz.</span></div></section>
+    <div class="week-row"><div class="days">${days}</div><span class="muted">${streakText()}</span></div></section>
   <main class="${fresh?'enter':''}">${tab(due)}</main>`;
 }
 function tab(due){
@@ -615,7 +651,7 @@ function buildLesson(ws_,sents){
   shuffle(sents).slice(0,2).forEach((s,i)=>Q.push({k:i?'lbuild':'build',s,tiles:shuffle(s.t.split(' '))}));
   return Q;}
 function start(list,sents){
-  V.stat={ok:0,no:0,newW:0};V.typed='';V.sug=null;V.view='lesson';V.lq=buildLesson(list,sents||[]);V.i=0;V.t0=Date.now();V.fb=null;V.built=[];V.total=V.lq.length;V.did=0;render();}
+  V.stat={ok:0,no:0,newW:0};V.typed='';V.sug=null;V.view='lesson';V.lq=buildLesson(list,sents||[]);V.i=0;V.t0=Date.now();V.fb=null;V.built=[];V.total=V.lq.length;V.did=0;render();liveUpdate();}
 function renderLesson(){
   const q=V.lq[V.i];if(!q)return finish();
   const a=$('#app'),fb=V.fb,pc=V.did/V.total*100;
@@ -641,10 +677,10 @@ function answer(ok,q){
   if(q.w)touch(q.w,ok,q.final);
   if(!ok&&!q.retry){V.lq.push(Object.assign({},q,{retry:true,fb:null}));V.total++;}
   render();}
-function next(){const cq=V.lq&&V.lq[V.i];if(cq&&cq.k==='intro'&&V.stat)V.stat.newW++;V.typed='';V.sug=null;V.fb=null;V.built=[];V.usedIdx=[];V.did++;V.i++;render();}
+function next(){const cq=V.lq&&V.lq[V.i];if(cq&&cq.k==='intro'&&V.stat)V.stat.newW++;V.typed='';V.sug=null;V.fb=null;V.built=[];V.usedIdx=[];V.did++;V.i++;render();liveUpdate();}
 function finish(){
   const mins=Math.max(1,Math.round((Date.now()-V.t0)/60000));
-  const k=dkey();S.min[k]=(S.min[k]||0)+mins;save();scheduleReminders();V.view='done';V.res={mins,stat:V.stat};render();}
+  const k=dkey();S.min[k]=(S.min[k]||0)+mins;save();liveEnd();scheduleReminders();V.view='done';V.res={mins,stat:V.stat};render();}
 function renderDone(){
   $('#app').innerHTML=`<div class="lesson" style="align-items:center;justify-content:center;text-align:center"><div style="width:120px">${plant(4,false)}</div><h2>${V.res.story!=null?'Sahne bitti: '+V.res.story+' / 6 kibarlık':'Ders tamam'}</h2>${V.res.stat?`<div class="chips" style="justify-content:center"><span class="chip">${V.res.stat.ok} doğru</span>${V.res.stat.no?`<span class="chip warn">${V.res.stat.no} yanlış</span>`:''}${V.res.stat.newW?`<span class="chip">${V.res.stat.newW} yeni tohum</span>`:''}</div>`:''}<p class="muted">Bahçene ${V.res.mins} dakika sulama yazıldı.</p><button class="btn" data-act="home">Bahçeye dön</button></div>`;V.lk=null;V.hk=null;confetti();}
 function confetti(){
@@ -711,7 +747,7 @@ function handle(b){
   else if(a==='story'){V.view='story';V.si=+d.si;V.n=0;V.sc=0;V.ans=[];render()}
   else if(a==='snext'){V.n++;render()}
   else if(a==='sdone'){const k=dkey();S.min[k]=(S.min[k]||0)+2;{const sk=S.lang+':'+V.si;if(S.story[sk]==null||V.sc>S.story[sk])S.story[sk]=V.sc}save();V.res={mins:2,story:V.sc};V.view='done';render()}
-  else if(a==='home'||a==='quit'){V.view='home';render()}
+  else if(a==='home'||a==='quit'){liveEnd();V.view='home';render()}
   else if(a==='next')next();
   else if(a==='check'&&q){
     if(q.k==='type'){const v=$('#ty').value;if(!v.trim())return;V.typed=v;
