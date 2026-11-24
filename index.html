@@ -507,10 +507,12 @@ async function liveUpdate(){
     subText:`${Math.min(done+1,total)} / ${total}`,chipText:`${left} soru`,progress:done,max:total,whenMs:s.resetAt||V.t0,countDown:!!s.resetAt})}catch(e){}}
 async function streakNotif(){
   const lv=NP('FilizLive');if(!lv)return;
-  const s=streakInfo();
-  if(!S.streakNotif||!s.n||V.view==='lesson'){try{await lv.cancelStreak()}catch(e){}return}
-  if(!(await ensurePerm()))return;
-  try{await lv.showStreak({title:`Seri ${s.n} gün`,text:s.today?'Bugün tamam. Sıfırlanmasına kalan süre sağda.':'Bugün bir ders bitir. Sıfırlanmasına kalan süre sağda.',whenMs:s.resetAt,timeoutMs:Math.max(0,s.resetAt-Date.now())})}catch(e){}}
+  if(V.view==='lesson'){try{await lv.hideStreak()}catch(e){}return}
+  const st=streakInfo();
+  if(S.streakNotif&&!(await ensurePerm()))return;
+  const d0=new Date();d0.setHours(0,0,0,0);const last=new Date(d0);if(!st.today)last.setDate(last.getDate()-1);
+  const from=S.snFrom==null?18:S.snFrom,to=Math.max(from+1,S.snTo==null?23:S.snTo);
+  try{await lv.setStreak({enabled:!!S.streakNotif&&st.n>0,n:st.n,lastStudyMs:+last,resetAt:st.resetAt,fromHour:from,toHour:Math.min(24,to)})}catch(e){}}
 function liveEnd(){const lv=NP('FilizLive');if(lv)try{lv.cancel()}catch(e){}}
 
 /* ---------- Google girişi ve bulutta saklama (yalnızca mobil uygulama) ---------- */
@@ -632,7 +634,7 @@ function tab(due){
     <h2 style="margin-top:22px">Kendi kelimeni ekle</h2><p class="muted">Eklediğin kelime bahçene yeni bir tohum olarak düşer. Ses benzerliği ipucunu kendin yaz.</p>
     <form class="add" id="addf"><input type="text" id="a-tr" placeholder="Türkçesi" required><input type="text" id="a-t" placeholder="${L[S.lang].ad} karşılığı" required><input type="text" id="a-h" placeholder="Türkçe ses ipucu (isteğe bağlı)"><button class="btn" type="submit">Tohumu ek</button></form>
     <h2 style="margin-top:22px">Hesap</h2>${NP('FirebaseAuthentication')?(USER?`<p class="muted"><b>${esc(USER.displayName||'')}</b> ${esc(USER.email||'')}<br>İlerleme bulutta saklanıyor. Başka telefonda aynı hesapla girince geri gelir.</p><div class="row"><button class="btn ghost" data-act="gsync">Şimdi eşitle</button><button class="btn ghost" data-act="gout">Çıkış yap</button></div>`:`<p class="muted">Giriş yap, ilerlemen bulutta saklansın. Telefon değiştirsen de kaybolmaz.</p><div class="row"><button class="btn" data-act="gin">Google ile giriş yap</button></div>`):`<p class="muted">Google ile giriş mobil uygulamada çalışır.</p>`}<p class="muted" id="gmsg" role="status"></p>
-    <h2 style="margin-top:22px">Hatırlatmalar</h2>${LN()?`<p class="muted">Akşam 19:00'da ve bitkilerin susadığı zaman telefona bildirim gelir. Seri ya da suçlama yok.</p><p class="muted">Xiaomi telefonlarda bildirim gelmezse: Ayarlar, Uygulamalar, Filiz içinde "Otomatik başlat"ı aç ve pil tasarrufunu "Kısıtlama yok" yap.</p><div class="row"><button class="btn ${S.notify?'':'ghost'}" data-act="notify">${S.notify?'Hatırlatmalar açık':'Hatırlatmaları aç'}</button></div><p class="muted">Seri bildirimi, dersten bağımsız olarak panelde sabit durur ve serinin sıfırlanmasına kalan süreyi canlı gösterir.</p><div class="row"><button class="btn ${S.streakNotif?'':'ghost'}" data-act="streakn">${S.streakNotif?'Seri bildirimi açık':'Seri bildirimini aç'}</button></div>`:`<p class="muted">Bildirimler mobil uygulamada çalışır. Tarayıcıdaki sürümde yalnızca sayfa açıkken hatırlatma görürsün.</p>`}<p class="muted" id="ntmsg" role="status"></p>
+    <h2 style="margin-top:22px">Hatırlatmalar</h2>${LN()?`<p class="muted">Akşam 19:00'da ve bitkilerin susadığı zaman telefona bildirim gelir. Seri ya da suçlama yok.</p><p class="muted">Xiaomi telefonlarda bildirim gelmezse: Ayarlar, Uygulamalar, Filiz içinde "Otomatik başlat"ı aç ve pil tasarrufunu "Kısıtlama yok" yap.</p><div class="row"><button class="btn ${S.notify?'':'ghost'}" data-act="notify">${S.notify?'Hatırlatmalar açık':'Hatırlatmaları aç'}</button></div><p class="muted">Seri bildirimi, seçtiğin saat aralığında panelde sabit durur ve serinin sıfırlanmasına kalan süreyi canlı gösterir. Aralığın dışında görünmez.</p><div class="row"><button class="btn ${S.streakNotif?'':'ghost'}" data-act="streakn">${S.streakNotif?'Seri bildirimi açık':'Seri bildirimini aç'}</button></div>${(()=>{const f=S.snFrom==null?18:S.snFrom,t=Math.max(f+1,S.snTo==null?23:S.snTo),o=(a,b,v)=>Array.from({length:b-a+1},(_,i)=>a+i).map(h=>`<option value="${h}" ${h===v?'selected':''}>${String(h%24).padStart(2,'0')}:00</option>`).join('');return S.streakNotif?`<div class="row"><span class="muted">Şu saatler arasında göster</span><select id="sn-from" aria-label="Başlangıç saati">${o(0,22,f)}</select><span class="muted">ile</span><select id="sn-to" aria-label="Bitiş saati">${o(f+1,24,t)}</select></div>`:''})()}`:`<p class="muted">Bildirimler mobil uygulamada çalışır. Tarayıcıdaki sürümde yalnızca sayfa açıkken hatırlatma görürsün.</p>`}<p class="muted" id="ntmsg" role="status"></p>
     <h2 style="margin-top:22px">İlerlemeni taşı</h2><p class="muted">Hesap sistemi yok, ilerleme bu tarayıcıda durur. Başka cihaza geçmek için kodu kopyala, orada yapıştır.</p>
     <div class="row"><button class="btn ghost" data-act="bkcopy">Kodu kopyala</button><input type="text" id="bk" placeholder="Kodu buraya yapıştır" aria-label="Yedek kodu"><button class="btn ghost" data-act="bkload">Geri yükle</button></div><p class="muted" id="bkmsg" role="status"></p>`;
   }
@@ -785,7 +787,9 @@ document.addEventListener('keydown',e=>{
   if(!e.target.closest('input')&&!e.ctrlKey&&!e.metaKey){const i='abcd'.indexOf(e.key.toLowerCase());const o=i>=0&&document.querySelectorAll('.opt')[i];if(o&&!o.disabled&&e.key.length===1)o.click()}if(e.key==='Enter'&&e.target.id==='ty'){const b=document.querySelector('[data-act=check]');b&&b.click()}});
 document.addEventListener('change',e=>{
   if(e.target.id==='lang'){S.lang=e.target.value;save();loadPack(S.lang);render()}
-  if(e.target.id==='goal'){S.goal=+e.target.value;save();render()}});
+  if(e.target.id==='goal'){S.goal=+e.target.value;save();render()}
+  if(e.target.id==='sn-from'){S.snFrom=+e.target.value;if((S.snTo==null?23:S.snTo)<=S.snFrom)S.snTo=Math.min(24,S.snFrom+1);save();streakNotif();render()}
+  if(e.target.id==='sn-to'){S.snTo=+e.target.value;save();streakNotif();render()}});
 document.addEventListener('submit',e=>{
   if(e.target.id==='addf'){e.preventDefault();
     const tr=$('#a-tr').value.trim(),t=$('#a-t').value.trim(),h=$('#a-h').value.trim();if(!tr||!t)return;

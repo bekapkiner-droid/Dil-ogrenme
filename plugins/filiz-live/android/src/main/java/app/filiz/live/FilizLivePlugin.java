@@ -27,8 +27,6 @@ import java.util.List;
 public class FilizLivePlugin extends Plugin {
     private static final String CHANNEL_ID = "filiz_live";
     private static final int NOTIFICATION_ID = 4242;
-    private static final String STREAK_CHANNEL_ID = "filiz_streak";
-    private static final int STREAK_ID = 4243;
     private static final long TIMEOUT_MS = 30L * 60L * 1000L; // uygulama kapanırsa bildirim kendiliğinden kalkar
 
     @PluginMethod
@@ -93,58 +91,32 @@ public class FilizLivePlugin extends Plugin {
         }
     }
 
-    /** Dersten bağımsız, sürekli duran seri bildirimi. Geri sayım sıfırlanma anına kadar işler, süre bitince bildirim kalkar. */
+    /** Seri bildirimi ayarını kaydeder; saat aralığına göre gösterir ya da kaldırır, alarm kurar. */
     @PluginMethod
-    public void showStreak(PluginCall call) {
+    public void setStreak(PluginCall call) {
         try {
             Context ctx = getContext();
-            NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (Build.VERSION.SDK_INT >= 26) {
-                NotificationChannel ch = new NotificationChannel(STREAK_CHANNEL_ID, "Seri", NotificationManager.IMPORTANCE_LOW);
-                ch.setDescription("Serinin sıfırlanmasına kalan süre");
-                ch.setShowBadge(false);
-                nm.createNotificationChannel(ch);
-            }
-            String title = call.getString("title", "Seri");
-            String text = call.getString("text", "");
-            long whenMs = call.getLong("whenMs", System.currentTimeMillis() + 3600000L);
-            long timeoutMs = call.getLong("timeoutMs", 0L);
-
-            Intent open = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
-            PendingIntent pi = PendingIntent.getActivity(
-                ctx, 1, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-            Notification.Builder b = Build.VERSION.SDK_INT >= 26
-                ? new Notification.Builder(ctx, STREAK_CHANNEL_ID)
-                : new Notification.Builder(ctx);
-            b.setSmallIcon(ctx.getResources().getIdentifier("ic_stat_filiz", "drawable", ctx.getPackageName()))
-                .setContentTitle(title)
-                .setContentText(text)
-                .setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setCategory(Notification.CATEGORY_STATUS)
-                .setContentIntent(pi)
-                .setColor(0xFF2C9A68)
-                .setShowWhen(true)
-                .setWhen(whenMs)
-                .setUsesChronometer(true);
-            if (Build.VERSION.SDK_INT >= 24) b.setChronometerCountDown(true);
-            if (Build.VERSION.SDK_INT >= 26 && timeoutMs > 0) b.setTimeoutAfter(timeoutMs);
-            nm.notify(STREAK_ID, b.build());
+            android.content.SharedPreferences.Editor e =
+                ctx.getSharedPreferences(StreakReceiver.PREFS, Context.MODE_PRIVATE).edit();
+            e.putBoolean("enabled", Boolean.TRUE.equals(call.getBoolean("enabled", false)));
+            e.putInt("n", call.getInt("n", 0));
+            e.putLong("lastStudyMs", call.getLong("lastStudyMs", 0L));
+            e.putLong("resetAt", call.getLong("resetAt", 0L));
+            e.putInt("fromHour", call.getInt("fromHour", 18));
+            e.putInt("toHour", call.getInt("toHour", 23));
+            e.apply();
+            StreakReceiver.refresh(ctx);
             call.resolve();
         } catch (Throwable t) {
-            call.reject("Seri bildirimi gösterilemedi: " + t.getMessage());
+            call.reject("Seri bildirimi ayarlanamadı: " + t.getMessage());
         }
     }
 
+    /** Ders sürerken sabit seri bildirimini geçici olarak gizler (ayar ve alarm yerinde kalır). */
     @PluginMethod
-    public void cancelStreak(PluginCall call) {
-        try {
-            NotificationManager nm = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            nm.cancel(STREAK_ID);
-            call.resolve();
-        } catch (Throwable t) {
-            call.reject(t.getMessage());
-        }
+    public void hideStreak(PluginCall call) {
+        StreakReceiver.hide(getContext());
+        call.resolve();
     }
 
     private void ensureChannel(NotificationManager nm) {
