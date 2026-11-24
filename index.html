@@ -505,6 +505,12 @@ async function liveUpdate(){
   const line=s.n>0?(s.today?`Seri ${s.n} gün, bugün tamam`:`Seri ${s.n} gün, bitirirsen ${s.n+1} olur`):'Bitirince serin başlar';
   try{await lv.show({title:`Ders sürüyor · ${left} soru kaldı`,text:s.resetAt?`${line}. Sıfırlanmasına kalan süre sağda.`:line,
     subText:`${Math.min(done+1,total)} / ${total}`,chipText:`${left} soru`,progress:done,max:total,whenMs:s.resetAt||V.t0,countDown:!!s.resetAt})}catch(e){}}
+async function streakNotif(){
+  const lv=NP('FilizLive');if(!lv)return;
+  const s=streakInfo();
+  if(!S.streakNotif||!s.n||V.view==='lesson'){try{await lv.cancelStreak()}catch(e){}return}
+  if(!(await ensurePerm()))return;
+  try{await lv.showStreak({title:`Seri ${s.n} gün`,text:s.today?'Bugün tamam. Sıfırlanmasına kalan süre sağda.':'Bugün bir ders bitir. Sıfırlanmasına kalan süre sağda.',whenMs:s.resetAt,timeoutMs:Math.max(0,s.resetAt-Date.now())})}catch(e){}}
 function liveEnd(){const lv=NP('FilizLive');if(lv)try{lv.cancel()}catch(e){}}
 
 /* ---------- Google girişi ve bulutta saklama (yalnızca mobil uygulama) ---------- */
@@ -626,7 +632,7 @@ function tab(due){
     <h2 style="margin-top:22px">Kendi kelimeni ekle</h2><p class="muted">Eklediğin kelime bahçene yeni bir tohum olarak düşer. Ses benzerliği ipucunu kendin yaz.</p>
     <form class="add" id="addf"><input type="text" id="a-tr" placeholder="Türkçesi" required><input type="text" id="a-t" placeholder="${L[S.lang].ad} karşılığı" required><input type="text" id="a-h" placeholder="Türkçe ses ipucu (isteğe bağlı)"><button class="btn" type="submit">Tohumu ek</button></form>
     <h2 style="margin-top:22px">Hesap</h2>${NP('FirebaseAuthentication')?(USER?`<p class="muted"><b>${esc(USER.displayName||'')}</b> ${esc(USER.email||'')}<br>İlerleme bulutta saklanıyor. Başka telefonda aynı hesapla girince geri gelir.</p><div class="row"><button class="btn ghost" data-act="gsync">Şimdi eşitle</button><button class="btn ghost" data-act="gout">Çıkış yap</button></div>`:`<p class="muted">Giriş yap, ilerlemen bulutta saklansın. Telefon değiştirsen de kaybolmaz.</p><div class="row"><button class="btn" data-act="gin">Google ile giriş yap</button></div>`):`<p class="muted">Google ile giriş mobil uygulamada çalışır.</p>`}<p class="muted" id="gmsg" role="status"></p>
-    <h2 style="margin-top:22px">Hatırlatmalar</h2>${LN()?`<p class="muted">Akşam 19:00'da ve bitkilerin susadığı zaman telefona bildirim gelir. Seri ya da suçlama yok.</p><p class="muted">Xiaomi telefonlarda bildirim gelmezse: Ayarlar, Uygulamalar, Filiz içinde "Otomatik başlat"ı aç ve pil tasarrufunu "Kısıtlama yok" yap.</p><div class="row"><button class="btn ${S.notify?'':'ghost'}" data-act="notify">${S.notify?'Hatırlatmalar açık':'Hatırlatmaları aç'}</button></div>`:`<p class="muted">Bildirimler mobil uygulamada çalışır. Tarayıcıdaki sürümde yalnızca sayfa açıkken hatırlatma görürsün.</p>`}<p class="muted" id="ntmsg" role="status"></p>
+    <h2 style="margin-top:22px">Hatırlatmalar</h2>${LN()?`<p class="muted">Akşam 19:00'da ve bitkilerin susadığı zaman telefona bildirim gelir. Seri ya da suçlama yok.</p><p class="muted">Xiaomi telefonlarda bildirim gelmezse: Ayarlar, Uygulamalar, Filiz içinde "Otomatik başlat"ı aç ve pil tasarrufunu "Kısıtlama yok" yap.</p><div class="row"><button class="btn ${S.notify?'':'ghost'}" data-act="notify">${S.notify?'Hatırlatmalar açık':'Hatırlatmaları aç'}</button></div><p class="muted">Seri bildirimi, dersten bağımsız olarak panelde sabit durur ve serinin sıfırlanmasına kalan süreyi canlı gösterir.</p><div class="row"><button class="btn ${S.streakNotif?'':'ghost'}" data-act="streakn">${S.streakNotif?'Seri bildirimi açık':'Seri bildirimini aç'}</button></div>`:`<p class="muted">Bildirimler mobil uygulamada çalışır. Tarayıcıdaki sürümde yalnızca sayfa açıkken hatırlatma görürsün.</p>`}<p class="muted" id="ntmsg" role="status"></p>
     <h2 style="margin-top:22px">İlerlemeni taşı</h2><p class="muted">Hesap sistemi yok, ilerleme bu tarayıcıda durur. Başka cihaza geçmek için kodu kopyala, orada yapıştır.</p>
     <div class="row"><button class="btn ghost" data-act="bkcopy">Kodu kopyala</button><input type="text" id="bk" placeholder="Kodu buraya yapıştır" aria-label="Yedek kodu"><button class="btn ghost" data-act="bkload">Geri yükle</button></div><p class="muted" id="bkmsg" role="status"></p>`;
   }
@@ -664,7 +670,7 @@ function buildLesson(ws_,sents){
   shuffle(sents).slice(0,2).forEach((s,i)=>Q.push({k:i?'lbuild':'build',s,tiles:shuffle(s.t.split(' '))}));
   return Q;}
 function start(list,sents){
-  V.stat={ok:0,no:0,newW:0};V.typed='';V.sug=null;V.view='lesson';V.lq=buildLesson(list,sents||[]);V.i=0;V.t0=Date.now();V.fb=null;V.built=[];V.total=V.lq.length;V.did=0;render();liveUpdate();}
+  V.stat={ok:0,no:0,newW:0};V.typed='';V.sug=null;V.view='lesson';V.lq=buildLesson(list,sents||[]);V.i=0;V.t0=Date.now();V.fb=null;V.built=[];V.total=V.lq.length;V.did=0;render();liveUpdate();streakNotif();}
 function renderLesson(){
   const q=V.lq[V.i];if(!q)return finish();
   const a=$('#app'),fb=V.fb,pc=V.did/V.total*100;
@@ -693,7 +699,7 @@ function answer(ok,q){
 function next(){const cq=V.lq&&V.lq[V.i];if(cq&&cq.k==='intro'&&V.stat)V.stat.newW++;V.typed='';V.sug=null;V.fb=null;V.built=[];V.usedIdx=[];V.did++;V.i++;render();liveUpdate();}
 function finish(){
   const mins=Math.max(1,Math.round((Date.now()-V.t0)/60000));
-  const k=dkey();S.min[k]=(S.min[k]||0)+mins;save();liveEnd();scheduleReminders();V.view='done';V.res={mins,stat:V.stat};render();}
+  const k=dkey();S.min[k]=(S.min[k]||0)+mins;save();liveEnd();scheduleReminders();V.view='done';V.res={mins,stat:V.stat};render();streakNotif();}
 function renderDone(){
   $('#app').innerHTML=`<div class="lesson" style="align-items:center;justify-content:center;text-align:center"><div style="width:120px">${plant(4,false)}</div><h2>${V.res.story!=null?'Sahne bitti: '+V.res.story+' / 6 kibarlık':'Ders tamam'}</h2>${V.res.stat?`<div class="chips" style="justify-content:center"><span class="chip">${V.res.stat.ok} doğru</span>${V.res.stat.no?`<span class="chip warn">${V.res.stat.no} yanlış</span>`:''}${V.res.stat.newW?`<span class="chip">${V.res.stat.newW} yeni tohum</span>`:''}</div>`:''}<p class="muted">Bahçene ${V.res.mins} dakika sulama yazıldı.</p><button class="btn" data-act="home">Bahçeye dön</button></div>`;V.lk=null;V.hk=null;confetti();}
 function confetti(){
@@ -718,7 +724,7 @@ function renderStory(){
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||b.disabled||V.busy)return;
   ripple(b,e);
-  const d=b.dataset,nav=d.tab||d.ch!=null||(d.act&&d.act!=='check'&&d.act!=='mute'&&!/^sug/.test(d.act)&&!/^g(in|out|sync)$/.test(d.act));
+  const d=b.dataset,nav=d.tab||d.ch!=null||(d.act&&d.act!=='check'&&d.act!=='mute'&&!/^sug/.test(d.act)&&!/^(g(in|out|sync)|streakn|notify)$/.test(d.act));
   if(nav&&!reduce){
     V.busy=true;b.classList.add('press');
     const tgt=d.tab?$('main'):(d.act==='next'||d.act==='snext')?null:$('#app');
@@ -747,6 +753,11 @@ function handle(b){
   if(a==='gin'||a==='gout'||a==='gsync'){
     const f=a==='gin'?googleIn:a==='gout'?googleOut:async()=>{try{await cloudPull();return 'Eşitlendi.'}catch(e){return 'Eşitlenemedi.'}};
     f().then(t=>{render();const e=$('#gmsg');if(e)e.textContent=t});return}
+  if(a==='streakn'){
+    (async()=>{S.streakNotif=!S.streakNotif;save();
+      let m=S.streakNotif?'Seri bildirimi açıldı. Serin yoksa ilk dersten sonra görünür.':'Seri bildirimi kapatıldı.';
+      if(S.streakNotif&&!(await ensurePerm())){S.streakNotif=false;save();m='Bildirim izni verilmedi. Telefon ayarlarından açabilirsin.'}
+      await streakNotif();render();const e=$('#ntmsg');if(e)e.textContent=m+(S.streakNotif?' Android 14 ve üstünde bildirimi kaydırarak kapatabilirsin.':'')})();return}
   if(a==='notify'){toggleNotify().then(t=>{render();const e=$('#ntmsg');if(e)e.textContent=t});return}
   if(a==='sugyes'&&q){V.sug=null;V.pick=q.w.t;return answer(true,q)}
   if(a==='sugno'){V.sug=null;return render()}
@@ -760,7 +771,7 @@ function handle(b){
   else if(a==='story'){V.view='story';V.si=+d.si;V.n=0;V.sc=0;V.ans=[];render()}
   else if(a==='snext'){V.n++;render()}
   else if(a==='sdone'){const k=dkey();S.min[k]=(S.min[k]||0)+2;{const sk=S.lang+':'+V.si;if(S.story[sk]==null||V.sc>S.story[sk])S.story[sk]=V.sc}save();V.res={mins:2,story:V.sc};V.view='done';render()}
-  else if(a==='home'||a==='quit'){liveEnd();V.view='home';render()}
+  else if(a==='home'||a==='quit'){liveEnd();V.view='home';render();streakNotif()}
   else if(a==='next')next();
   else if(a==='check'&&q){
     if(q.k==='type'){const v=$('#ty').value;if(!v.trim())return;V.typed=v;
@@ -782,5 +793,6 @@ document.addEventListener('submit',e=>{
 loadPack(S.lang);
 render();
 scheduleReminders();
+streakNotif();
 cloudInit();
 </script>

@@ -8,7 +8,7 @@ const assert=require('assert');
   await p.addInitScript(()=>{
     window.__live=[];
     window.Capacitor={isNativePlatform:()=>true,Plugins:{
-      FilizLive:{show:async a=>{__live.push(['show',a]);return{promoted:true}},cancel:async()=>{__live.push(['cancel'])}},
+      FilizLive:{show:async a=>{__live.push(['show',a]);return{promoted:true}},cancel:async()=>{__live.push(['cancel'])},showStreak:async a=>{__live.push(['showStreak',a])},cancelStreak:async()=>{__live.push(['cancelStreak'])}},
       LocalNotifications:{checkPermissions:async()=>({display:'granted'}),requestPermissions:async()=>({display:'granted'}),cancel:async()=>{},schedule:async a=>{__live.push(['schedule',a])}}}};
     const d=n=>{const x=new Date();x.setDate(x.getDate()-n);return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate()};
     localStorage.setItem('filiz2',JSON.stringify({lang:'en',goal:60,notify:true,words:{},custom:{},story:{},min:{[d(1)]:5,[d(2)]:3,[d(3)]:2},ts:1}));
@@ -31,10 +31,22 @@ const assert=require('assert');
   calls=await p.evaluate(()=>__live);
   const show2=calls.filter(c=>c[0]==='show').pop();
   assert(show2[1].progress===1,'ilerleme güncellenmedi');
+  // ders başlayınca sabit seri bildirimi kalkmış olmalı (ders bildirimi var)
+  assert((await p.evaluate(()=>__live)).filter(c=>c[0]==='cancelStreak').length>=1,'ders sırasında seri bildirimi kalkmadı');
   // dersi çık: bildirim kalkmalı
   await p.click('[data-act=quit]');await p.waitForTimeout(700);
   calls=await p.evaluate(()=>__live);
   assert(calls.filter(c=>c[0]==='cancel').length>=1,'çıkınca bildirim kalkmadı');
+  // ayar: seri bildirimini aç
+  await p.click('[data-tab=yol]');await p.waitForTimeout(700);
+  await p.click('[data-act=streakn]');await p.waitForTimeout(800);
+  calls=await p.evaluate(()=>__live);
+  const ss=calls.filter(c=>c[0]==='showStreak').pop();
+  assert(ss,'seri bildirimi gösterilmedi');
+  assert(ss[1].title==='Seri 3 gün'&&ss[1].timeoutMs>0&&ss[1].whenMs>Date.now(),'seri bildirimi içeriği: '+JSON.stringify(ss[1]));
+  await p.click('[data-act=streakn]');await p.waitForTimeout(600);
+  const n0=(await p.evaluate(()=>__live)).filter(c=>c[0]==='cancelStreak').length;
+  assert(n0>=2,'kapatınca seri bildirimi kalkmadı');
   // seri hatırlatması planlandı mı (gece yarısına 3 saat kala, gelecekteyse)
   assert.deepStrictEqual(errs,[]);
   console.log('tamam: seri',st.n,'gün, canlı bildirim ve güncelleme, çıkışta kapanma');
